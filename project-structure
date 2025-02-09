@@ -1,0 +1,26 @@
+resin-jewelry-store/
+├── index.html
+├── styles.css
+├── script.js
+└── stock/
+    ├── colier-floral/
+    │   ├── images/
+    │   │   ├── main.jpg
+    │   │   └── detail1.jpg
+    │   ├── price.txt
+    │   ├── description.txt
+    │   └── title.txt
+    ├── inel-galaxie/
+    │   ├── images/
+    │   │   ├── main.jpg
+    │   │   └── detail1.jpg
+    │   ├── price.txt
+    │   ├── description.txt
+    │   └── title.txt
+    └── cercei-ocean/
+        ├── images/
+        │   ├── main.jpg
+        │   └── detail1.jpg
+        ├── price.txt
+        ├── description.txt
+        └── title.txt 
