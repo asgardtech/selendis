@@ -2,8 +2,9 @@ const { google } = require('googleapis');
 
 exports.handler = async function(event, context) {
   try {
-    // Parse the credentials JSON from env variable
-    const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+    // Decode base64 credentials
+    const credentialsJson = Buffer.from(process.env.GOOGLE_CREDENTIALS, 'base64').toString();
+    const credentials = JSON.parse(credentialsJson);
     
     // Create auth client
     const auth = new google.auth.GoogleAuth({
@@ -14,10 +15,12 @@ exports.handler = async function(event, context) {
     // Initialize Drive client
     const drive = google.drive({ version: 'v3', auth });
     
+    const FOLDER_ID = '1Tbo0fOEn_IUfJZULGJ3hPfWKipytoniJ';
+    console.log('Fetching folders from:', FOLDER_ID);
+    
     // Get all product folders
-    console.log('Fetching folders from:', process.env.FOLDER_ID);
     const folders = await drive.files.list({
-      q: `'${process.env.FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder'`,
+      q: `'${FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder'`,
       fields: 'files(id, name)'
     });
 

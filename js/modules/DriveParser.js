@@ -1,6 +1,7 @@
 export class DriveParser {
     static API_KEY = 'YOUR_GOOGLE_API_KEY';
     static FOLDER_ID = '1Tbo0fOEn_IUfJZULGJ3hPfWKipytoniJ';
+    static NETLIFY_API = 'https://selendis.netlify.app/.netlify/functions/get-products';
 
     static extractFolderData(html) {
         try {
@@ -60,7 +61,7 @@ export class DriveParser {
 
     static async getAllProducts() {
         try {
-            const response = await fetch('/.netlify/functions/get-products');
+            const response = await fetch(this.NETLIFY_API);
             if (!response.ok) throw new Error('Failed to fetch products');
             return await response.json();
         } catch (error) {
