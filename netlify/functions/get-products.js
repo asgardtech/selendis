@@ -1,7 +1,13 @@
 const { google } = require('googleapis');
-const { getStore } = require('@netlify/edge-functions');
 
-const CACHE_KEY = 'products';
+// Simple in-memory cache
+let cache = {
+  data: null,
+  etag: null,
+  lastModified: null,
+  timestamp: null
+};
+
 const CACHE_TTL = 5; // seconds
 const REFRESH_THRESHOLD = 3; // seconds before expiry to trigger refresh
 
@@ -98,19 +104,19 @@ async function fetchProducts(drive) {
   return products;
 }
 
-async function refreshCache(store, drive) {
+async function refreshCache(drive) {
   try {
     const products = await fetchProducts(drive);
     const etag = Math.random().toString(36).substring(7);
     const lastModified = new Date().toUTCString();
     const timestamp = Date.now();
 
-    await store.set(CACHE_KEY, {
+    cache = {
       data: JSON.stringify(products),
       etag,
       lastModified,
       timestamp
-    }, { ttl: CACHE_TTL });
+    };
 
     return { products, etag, lastModified };
   } catch (error) {
@@ -121,7 +127,6 @@ async function refreshCache(store, drive) {
 
 exports.handler = async function(event, context) {
   try {
-    const store = getStore();
     const corsHeaders = getCorsHeaders(event.headers.origin);
     
     // Handle preflight requests
@@ -132,10 +137,42 @@ exports.handler = async function(event, context) {
       };
     }
 
-    // Try to get cached data
-    const cached = await store.get(CACHE_KEY);
-    
-    // Initialize Drive client (we might need it)
+    // Check cache
+    if (cache.data) {
+      const age = Date.now() - cache.timestamp;
+      const shouldRefresh = age > (CACHE_TTL - REFRESH_THRESHOLD) * 1000;
+      
+      if (shouldRefresh) {
+        // Initialize Drive client for refresh
+        const credentialsJson = Buffer.from(process.env.GOOGLE_CREDENTIALS, 'base64').toString();
+        const credentials = JSON.parse(credentialsJson);
+        const auth = new google.auth.GoogleAuth({
+          credentials,
+          scopes: ['https://www.googleapis.com/auth/drive.readonly']
+        });
+        const drive = google.drive({ version: 'v3', auth });
+
+        // Trigger refresh without waiting
+        refreshCache(drive).catch(err => 
+          console.error('Background refresh failed:', err)
+        );
+      }
+
+      return {
+        statusCode: 200,
+        headers: {
+          ...corsHeaders,
+          'Cache-Control': `public, max-age=${CACHE_TTL}`,
+          'ETag': `"${cache.etag}"`,
+          'Last-Modified': cache.lastModified,
+          'X-Cache': 'HIT',
+          'X-Cache-Age': `${age}ms`
+        },
+        body: cache.data
+      };
+    }
+
+    // No cache, fetch fresh data
     const credentialsJson = Buffer.from(process.env.GOOGLE_CREDENTIALS, 'base64').toString();
     const credentials = JSON.parse(credentialsJson);
     const auth = new google.auth.GoogleAuth({
@@ -144,35 +181,7 @@ exports.handler = async function(event, context) {
     });
     const drive = google.drive({ version: 'v3', auth });
 
-    if (cached) {
-      // Check if we should trigger a background refresh
-      const age = Date.now() - cached.timestamp;
-      const shouldRefresh = age > (CACHE_TTL - REFRESH_THRESHOLD) * 1000;
-      
-      if (shouldRefresh) {
-        // Trigger refresh without waiting
-        refreshCache(store, drive).catch(err => 
-          console.error('Background refresh failed:', err)
-        );
-      }
-
-      // Return cached data immediately
-      return {
-        statusCode: 200,
-        headers: {
-          ...corsHeaders,
-          'Cache-Control': `public, max-age=${CACHE_TTL}`,
-          'ETag': `"${cached.etag}"`,
-          'Last-Modified': cached.lastModified,
-          'X-Cache': 'HIT',
-          'X-Cache-Age': `${age}ms`
-        },
-        body: cached.data
-      };
-    }
-
-    // No cache, fetch fresh data
-    const fresh = await refreshCache(store, drive);
+    const fresh = await refreshCache(drive);
     if (!fresh) {
       throw new Error('Failed to fetch products');
     }
@@ -192,24 +201,19 @@ exports.handler = async function(event, context) {
   } catch (error) {
     console.error('Handler error:', error);
     
-    // If we have stale cache, return it
-    try {
-      const staleCache = await store.get(CACHE_KEY);
-      if (staleCache) {
-        return {
-          statusCode: 200,
-          headers: {
-            ...corsHeaders,
-            'Cache-Control': 'public, max-age=0',
-            'ETag': `"${staleCache.etag}"`,
-            'Last-Modified': staleCache.lastModified,
-            'X-Cache': 'STALE'
-          },
-          body: staleCache.data
-        };
-      }
-    } catch (cacheError) {
-      console.error('Stale cache retrieval failed:', cacheError);
+    // Return stale cache if available
+    if (cache.data) {
+      return {
+        statusCode: 200,
+        headers: {
+          ...corsHeaders,
+          'Cache-Control': 'public, max-age=0',
+          'ETag': `"${cache.etag}"`,
+          'Last-Modified': cache.lastModified,
+          'X-Cache': 'STALE'
+        },
+        body: cache.data
+      };
     }
 
     return {
