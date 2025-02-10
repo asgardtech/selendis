@@ -100,7 +100,8 @@ async function fetchProducts(drive) {
           fileId: priceFile.id,
           alt: 'media'
         });
-        price = priceContent.data;
+        // Normalize price: strip everything except numbers
+        price = priceContent.data.replace(/[^\d]/g, '');
       }
     }
 
@@ -115,7 +116,7 @@ async function fetchProducts(drive) {
       id: folder.id,
       title: title,
       description: remainingDescription,
-      price: (price || '99') + ' lei',
+      price: parseInt(price || '99', 10), // Convert to number, default to 99 if empty
       media: photos
     };
   }));

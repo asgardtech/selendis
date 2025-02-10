@@ -1,8 +1,11 @@
 export class GDPR {
-    static COOKIE_NAME = 'gdpr_accepted';
-    static COOKIE_DURATION = 365; // days
+    constructor() {
+        this.COOKIE_NAME = 'gdpr_accepted';
+        this.COOKIE_DURATION = 365; // days
+        this.init();
+    }
 
-    static acceptCookies() {
+    acceptCookies() {
         const date = new Date();
         date.setTime(date.getTime() + (this.COOKIE_DURATION * 24 * 60 * 60 * 1000));
         document.cookie = `${this.COOKIE_NAME}=true; expires=${date.toUTCString()}; path=/`;
@@ -14,14 +17,20 @@ export class GDPR {
         }
     }
 
-    static hasAcceptedCookies() {
+    hasAcceptedCookies() {
         return document.cookie.split(';').some(item => item.trim().startsWith(`${this.COOKIE_NAME}=`));
     }
 
-    static init() {
+    init() {
         const banner = document.getElementById('gdpr-banner');
         if (banner && !this.hasAcceptedCookies()) {
             banner.style.display = 'block';
+            
+            // Add click handler for accept button
+            const acceptButton = document.getElementById('accept-cookies');
+            if (acceptButton) {
+                acceptButton.addEventListener('click', () => this.acceptCookies());
+            }
         }
     }
 } 

@@ -57,7 +57,7 @@
     <p>Acest site folosește cookie-uri pentru a îmbunătăți experiența dumneavoastră.
       Prin continuarea navigării, vă exprimați acordul asupra folosirii cookie-urilor.</p>
     <div class="gdpr-buttons">
-      <button onclick="acceptCookies()">Accept</button>
+      <button id="accept-cookies">Accept</button>
       <a href="privacy-policy.html" class="gdpr-link">Politica de confidențialitate</a>
     </div>
   </div>
@@ -69,11 +69,6 @@
     (function () {
       emailjs.init("YOUR_PUBLIC_KEY"); // Get this from Email.js dashboard
     })();
-  </script>
-  <script>
-    function acceptCookies() {
-      GDPR.acceptCookies();
-    }
   </script>
 </body>
 

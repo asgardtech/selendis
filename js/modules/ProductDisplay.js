@@ -43,7 +43,7 @@ export class ProductDisplay {
         div.innerHTML = `
             <img src="${imageUrl}" alt="${product.title}" loading="lazy">
             <h3>${this.normalizeTitle(product.title)}</h3>
-            <p class="price">${product.price}</p>
+            <p class="price">${product.price} Lei</p>
         `;
         
         div.addEventListener('click', () => this.showProductDetails(product));
@@ -72,7 +72,7 @@ export class ProductDisplay {
             ${mediaHtml}
             <div class="product-details">
                 <p class="description">${product.description.replace(/\n/g, '<br>')}</p>
-                <p class="price">${product.price}</p>
+                <p class="price">${product.price} Lei</p>
                 <div class="buy-section">
                     <button class="add-to-cart-button" onclick="store.addToCart('${product.id}')">
                         Adaugă în coș
