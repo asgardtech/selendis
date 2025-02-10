@@ -1,21 +1,25 @@
 export class Cart {
     constructor() {
         this.items = JSON.parse(localStorage.getItem('cart') || '[]');
+        this.updateCartUI();
     }
 
-    addItem(product, quantity = 1) {
+    addItem(product) {
+        // Check if item already exists
         const existingItem = this.items.find(item => item.id === product.id);
         if (existingItem) {
-            existingItem.quantity += quantity;
-        } else {
-            this.items.push({
-                id: product.id,
-                title: product.title,
-                price: product.price,
-                quantity,
-                media: product.media // Store full media array
-            });
+            return; // Don't add if already exists
         }
+        
+        // Add new item with quantity of 1
+        this.items.push({
+            id: product.id,
+            title: product.title,
+            price: product.price,
+            quantity: 1,
+            image: product.media?.[0]?.id
+        });
+        
         this.save();
         this.updateCartUI();
     }
@@ -24,6 +28,10 @@ export class Cart {
         this.items = this.items.filter(item => item.id !== productId);
         this.save();
         this.updateCartUI();
+        // Immediately update the cart page
+        if (window.location.hash === '#cart') {
+            window.store.showCart();
+        }
     }
 
     clear() {
@@ -37,16 +45,15 @@ export class Cart {
     }
 
     getTotal() {
-        return this.items.reduce((total, item) => {
-            const price = parseInt(item.price.replace(/[^0-9]/g, ''));
-            return total + (price * item.quantity);
-        }, 0);
+        return this.items.reduce((total, item) => total + item.price, 0);
     }
 
     updateCartUI() {
         const cartCount = document.getElementById('cartCount');
         if (cartCount) {
-            cartCount.textContent = this.items.reduce((total, item) => total + item.quantity, 0);
+            const totalItems = this.items.length;
+            cartCount.textContent = totalItems || '';
+            cartCount.style.display = totalItems ? 'inline' : 'none';
         }
     }
 } 

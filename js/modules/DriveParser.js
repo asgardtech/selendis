@@ -68,7 +68,6 @@ export class DriveParser {
             }
             
             const data = await response.json();
-            console.log('API Response:', data); // Debug log
             
             if (!Array.isArray(data)) {
                 console.error('Invalid data format:', data);

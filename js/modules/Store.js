@@ -11,6 +11,7 @@ export class Store {
         this.productDisplay = new ProductDisplay();
         this.gdpr = new GDPR();
         this.loadingScreen = new LoadingScreen();
+        this._products = null;
         
         // Initialize navigation
         this.initializeEventListeners();
@@ -21,6 +22,13 @@ export class Store {
         // Listen for URL fragment changes
         window.addEventListener('hashchange', () => {
             this.handleRoute();
+        });
+
+        // Load products immediately
+        this.loadProducts().then(products => {
+            this._products = products;
+        }).catch(error => {
+            console.error('Error preloading products:', error);
         });
     }
 
@@ -77,7 +85,11 @@ export class Store {
         this.loadingScreen.show('Se încarcă produsele...');
 
         try {
-            const products = await this.loadProducts();
+            // Use cached products if available
+            const products = this._products || await this.loadProducts();
+            if (!this._products) {
+                this._products = products;
+            }
             
             if (!products || !Array.isArray(products)) {
                 throw new Error('Invalid products data');
@@ -130,6 +142,43 @@ export class Store {
         }
     }
 
+    async findProduct(productId) {
+        // Use cached products if available
+        if (!this._products) {
+            this._products = await this.loadProducts();
+        }
+        return this._products.find(p => p.id === productId);
+    }
+
+    async addToCart(productId) {
+        try {
+            // Close the modal immediately
+            this.productDisplay.closeModal();
+            
+            const product = await this.findProduct(productId);
+            if (!product) {
+                throw new Error('Product not found');
+            }
+            
+            this.cart.addItem(product);
+            
+            // Show notification
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.innerHTML = `
+                <p>Produsul a fost adăugat în coș!</p>
+                <button onclick="store.showCart()">Vezi coșul</button>
+            `;
+            document.body.appendChild(notification);
+            
+            // Remove notification after 3 seconds
+            setTimeout(() => notification.remove(), 3000);
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            alert('A apărut o eroare. Vă rugăm încercați din nou.');
+        }
+    }
+
     getProductTitle(id) {
         const titles = {
             'colier': 'Colier Floral din Rășină',
@@ -152,57 +201,72 @@ export class Store {
     }
 
     showCart() {
-        const cartItems = this.cart.items;
-        
-        this.productDisplay.modalContent.innerHTML = `
-            <h2 class="modal-title">Coșul tău</h2>
-            ${cartItems.length === 0 ? '<p>Coșul este gol</p>' : `
-                <div class="cart-items">
-                    ${cartItems.map(item => `
-                        <div class="cart-item">
-                            <img src="${this.productDisplay.getImageUrl(item.media[0].id, 'small')}" alt="${item.title}">
-                            <div class="cart-item-details">
-                                <h3>${item.title}</h3>
-                                <p class="item-price">${item.price}</p>
-                                <p>Cantitate: ${item.quantity}</p>
+        this.mainContent.innerHTML = `
+            <div class="cart-page">
+                <h2>Coșul tău</h2>
+                ${this.cart.items.length === 0 ? 
+                    `<div class="empty-cart">
+                        <p>Coșul tău este gol</p>
+                        <button onclick="window.location.hash='shop'" class="continue-shopping">
+                            Continuă cumpărăturile
+                        </button>
+                    </div>` : 
+                    `<div class="cart-layout">
+                        <div class="cart-items-column">
+                            <div class="cart-items">
+                                ${this.cart.items.map(item => `
+                                    <div class="cart-item">
+                                        <img src="${this.productDisplay.getImageUrl(item.image, 'small')}" 
+                                             alt="${item.title}">
+                                        <div class="cart-item-details">
+                                            <h3>${item.title}</h3>
+                                            <p class="price">${item.price} Lei</p>
+                                            <div class="quantity-controls">
+                                                <button onclick="store.cart.removeItem('${item.id}')">Șterge</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
                             </div>
-                            <button onclick="store.cart.removeItem('${item.id}')" class="remove-item">×</button>
+                            <div class="cart-total">
+                                <h3>Total: ${this.cart.getTotal()} Lei</h3>
+                            </div>
                         </div>
-                    `).join('')}
-                </div>
-                <div class="cart-total">
-                    <h3>Total: ${this.cart.getTotal()} lei</h3>
-                </div>
-                <form id="orderForm" class="order-form" onsubmit="store.sendOrder(event)">
-                    <h3>Detalii comandă</h3>
-                    <div class="form-group">
-                        <label for="name">Nume complet*</label>
-                        <input type="text" id="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Email*</label>
-                        <input type="email" id="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="phone">Telefon*</label>
-                        <input type="tel" id="phone" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="address">Adresa de livrare*</label>
-                        <textarea id="address" required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="notes">Note suplimentare</label>
-                        <textarea id="notes"></textarea>
-                    </div>
-                    <button type="submit" class="submit-order">
-                        Trimite Comanda
-                    </button>
-                </form>
-            `}
+                        <div class="cart-form-column">
+                            <div class="cart-summary">
+                                <form id="orderForm" class="order-form" onsubmit="store.sendOrder(event)">
+                                    <h3>Detalii comandă</h3>
+                                    <div class="form-group">
+                                        <label for="name">Nume complet*</label>
+                                        <input type="text" id="name" name="name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="email">Email*</label>
+                                        <input type="email" id="email" name="email" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="phone">Telefon*</label>
+                                        <input type="tel" id="phone" name="phone" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="address">Adresa de livrare*</label>
+                                        <textarea id="address" name="address" required></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="notes">Note suplimentare</label>
+                                        <textarea id="notes" name="notes"></textarea>
+                                    </div>
+                                    <div class="g-recaptcha" data-sitekey="6LdzrtIqAAAAAPKJaPqHIBvuhCQeidklNUnwNweQ"></div>
+                                    <button type="submit" class="submit-order">
+                                        Trimite Comanda
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>`
+                }
+            </div>
         `;
-
-        this.productDisplay.modal.style.display = 'block';
     }
 
     async sendOrder(event) {
@@ -211,6 +275,13 @@ export class Store {
         const form = event.target;
         const formData = new FormData(form);
         
+        // Verify reCAPTCHA
+        const recaptchaResponse = grecaptcha.getResponse();
+        if (!recaptchaResponse) {
+            alert('Vă rugăm să confirmați că nu sunteți robot.');
+            return;
+        }
+
         // Prepare order details
         const orderDetails = {
             customerName: formData.get('name'),
@@ -223,49 +294,38 @@ export class Store {
                 price: item.price,
                 quantity: item.quantity
             })),
-            total: this.cart.getTotal()
+            total: this.cart.getTotal(),
+            recaptchaResponse
         };
 
-        // Create email body
-        const emailBody = `
-            Comandă nouă de la ${orderDetails.customerName}
+        try {
+            const response = await fetch('/.netlify/functions/submit-order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(orderDetails)
+            });
 
-            Detalii client:
-            Email: ${orderDetails.email}
-            Telefon: ${orderDetails.phone}
-            Adresa: ${orderDetails.address}
+            if (!response.ok) {
+                throw new Error('Eroare la trimiterea comenzii');
+            }
+
+            // Clear cart after successful order
+            this.cart.clear();
             
-            Produse comandate:
-            ${orderDetails.items.map(item => 
-                `- ${item.title} (${item.quantity}x) - ${item.price}`
-            ).join('\n')}
-
-            Total comandă: ${orderDetails.total} lei
-
-            Note: ${orderDetails.notes || 'Nicio notă'}
-        `;
-
-        // Open email client
-        const mailtoLink = `mailto:contact@selendis.ro?subject=Comandă nouă - ${orderDetails.customerName}&body=${encodeURIComponent(emailBody)}`;
-        window.location.href = mailtoLink;
-
-        // Clear cart after sending order
-        this.cart.clear();
-        
-        // Show success message
-        this.productDisplay.modalContent.innerHTML = `
-            <h2 class="modal-title">Mulțumim pentru comandă!</h2>
-            <p>Comanda ta a fost trimisă cu succes. Te vom contacta în curând pentru confirmare.</p>
-            <button onclick="store.productDisplay.closeModal()" class="close-button">
-                Închide
-            </button>
-        `;
-    }
-
-    addToCart(productId) {
-        const product = this.findProduct(productId);
-        if (product) {
-            this.cart.addItem(product);
+            // Show success message
+            this.productDisplay.modalContent.innerHTML = `
+                <h2 class="modal-title">Mulțumim pentru comandă!</h2>
+                <p>Comanda ta a fost trimisă cu succes. Te vom contacta în curând pentru confirmare.</p>
+                <button onclick="store.productDisplay.closeModal()" class="close-button">
+                    Închide
+                </button>
+            `;
+            this.productDisplay.modal.style.display = 'block';
+        } catch (error) {
+            console.error('Error:', error);
+            alert('A apărut o eroare la trimiterea comenzii. Vă rugăm să încercați din nou.');
         }
     }
 } 
