@@ -14,7 +14,8 @@ const REFRESH_THRESHOLD = 3; // seconds before expiry to trigger refresh
 const ALLOWED_ORIGINS = [
   'https://selendis.ro',
   'http://selendis.ro',
-  'http://localhost:5500' // For development
+  'http://localhost:5500', // For development
+  'http://127.0.0.1:5500'  // Add this too for local development
 ];
 
 function getCorsHeaders(origin) {
@@ -71,7 +72,12 @@ async function fetchProducts(drive) {
       if (subfolder.name === 'photos') {
         photos = subfiles.data.files
           .filter(f => f.mimeType.startsWith('image/'))
-          .map(f => `https://drive.google.com/uc?export=view&id=${f.id}`);
+          .map(f => ({
+            thumbnail: `https://drive.google.com/thumbnail?id=${f.id}&sz=w200`,  // Grid/list view
+            medium: `https://drive.google.com/thumbnail?id=${f.id}&sz=w600`,     // Product page preview
+            large: `https://drive.google.com/thumbnail?id=${f.id}&sz=w1200`,     // Full size/lightbox
+            original: `https://drive.google.com/thumbnail?id=${f.id}&sz=w2000`   // High-res backup
+          }));
         console.log(`Found ${photos.length} photos in ${folder.name}`);
       }
       else if (subfolder.name === 'description' && subfiles.data.files.length > 0) {

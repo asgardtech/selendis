@@ -62,31 +62,20 @@ export class DriveParser {
     static async getAllProducts() {
         try {
             const response = await fetch(this.NETLIFY_API);
-            if (!response.ok) throw new Error('Failed to fetch products');
+            if (!response.ok) {
+                console.error('API Error:', response.status, response.statusText);
+                throw new Error('Failed to fetch products');
+            }
             
-            const products = await response.json();
+            const data = await response.json();
+            console.log('API Response:', data); // Debug log
             
-            // Log cache status for debugging
-            console.log('Cache status:', {
-                hit: response.headers.get('X-Cache'),
-                age: response.headers.get('X-Cache-Age'),
-                etag: response.headers.get('ETag')
-            });
-
-            // Validate product data
-            if (!Array.isArray(products)) {
+            if (!Array.isArray(data)) {
+                console.error('Invalid data format:', data);
                 throw new Error('Invalid products data');
             }
 
-            // Ensure each product has required fields
-            return products.map(product => ({
-                id: product.id,
-                title: product.title,
-                description: product.description || 'Bijuterie handmade din rășină',
-                price: product.price || '99 lei',
-                media: Array.isArray(product.media) ? product.media : []
-            }));
-
+            return data;
         } catch (error) {
             console.error('Error getting products:', error);
             return [];
