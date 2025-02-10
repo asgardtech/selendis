@@ -127,8 +127,11 @@ export class Store {
         this.mainContent.innerHTML = `
             <div class="about-content">
                 <h2>Despre Selendis</h2>
-                <p>La Selendis, creăm bijuterii unice din rășină, fiecare piesă fiind o operă de artă în miniatură.</p>
-                <p>Inspirația noastră vine din frumusețea naturii și dorința de a crea piese care să aducă bucurie purtătorilor lor.</p>
+                <p>Suntem o mică afacere pasionată de frumusețea naturii și de arta meșteșugului, specializată în crearea de bijuterii, accesorii și decorațiuni din flori naturale și rășină. Majoritatea florilor pe care le folosim sunt culese cu grijă din mediul natural, oferindu-le o autenticitate aparte. Folosim tehnici tradiționale de presare a florilor, dar și metode moderne de uscare cu gel desicant, pentru a păstra delicatețea și formele originale ale acestora.</p>
+                
+                <p>Ceea ce ne face unici este respectul pentru naturalețea florilor. Nu vopsim florile, ci le lăsăm să își conserve culorile, chiar dacă nu rămân exacte după uscare, fiecare detaliu fiind o mărturie a trecerii timpului. Toate produsele noastre sunt realizate cu accesorii din oțel inoxidabil de înaltă calitate, ceea ce garantează durabilitatea și eleganța acestora.</p>
+                
+                <p>De asemenea, suntem bucuroși să oferim și produse personalizate, realizate la comandă, pentru a răspunde dorințelor și nevoilor fiecărui client. Fiecare piesă pe care o creăm este unicat și reflectă atenția noastră la detalii și iubirea pentru natură.</p>
             </div>
         `;
     }
@@ -255,6 +258,14 @@ export class Store {
                                     <div class="form-group">
                                         <label for="notes">Note suplimentare</label>
                                         <textarea id="notes" name="notes"></textarea>
+                                    </div>
+                                    <div class="form-group terms-agreement">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="terms-agreement" name="terms-agreement" required>
+                                            <span>Sunt de acord cu <a href="/termeni-si-conditii.html" target="_blank">Termenii și Condițiile</a>, 
+                                            <a href="/politica-de-retur.html" target="_blank">Politica de Retur</a> și 
+                                            <a href="/politica-de-confidentialitate.html" target="_blank">Politica de Confidențialitate</a>.</span>
+                                        </label>
                                     </div>
                                     <div id="recaptcha-container"></div>
                                     <button type="submit" class="submit-order">
