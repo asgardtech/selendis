@@ -15,6 +15,36 @@
   <meta property="og:url" content="https://selendis.ro">
   <meta property="og:type" content="website">
   <link rel="stylesheet" href="styles.css">
+
+  <!-- reCAPTCHA setup -->
+  <script type="text/javascript">
+    var onloadCallback = function () {
+      if (document.querySelector('.g-recaptcha')) {
+        grecaptcha.render('recaptcha-container', {
+          'sitekey': '6LdeytIqAAAAALsEWs68jTMnxEHVLasyk-LMqu5J',
+          'callback': onRecaptchaSuccess,
+          'expired-callback': onRecaptchaExpired,
+          'error-callback': onRecaptchaError
+        });
+      }
+    };
+
+    var onRecaptchaSuccess = function (token) {
+      console.log('reCAPTCHA validated');
+    };
+
+    var onRecaptchaExpired = function () {
+      console.log('reCAPTCHA expired');
+      alert('Verificarea a expirat. Vă rugăm să bifați din nou caseta reCAPTCHA.');
+    };
+
+    var onRecaptchaError = function () {
+      console.log('reCAPTCHA error');
+      alert('A apărut o eroare la încărcarea verificării. Vă rugăm să reîncărcați pagina.');
+    };
+  </script>
+  <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
+
   <!-- Favicon -->
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -64,7 +94,6 @@
 
   <!-- Scripts -->
   <script type="module" src="script.js"></script>
-  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </body>
 
 </html>

@@ -256,7 +256,7 @@ export class Store {
                                         <label for="notes">Note suplimentare</label>
                                         <textarea id="notes" name="notes"></textarea>
                                     </div>
-                                    <div class="g-recaptcha" data-sitekey="6LdeytIqAAAAALsEWs68jTMnxEHVLasyk-LMqu5J"></div>
+                                    <div id="recaptcha-container"></div>
                                     <button type="submit" class="submit-order">
                                         Trimite Comanda
                                     </button>
@@ -267,6 +267,11 @@ export class Store {
                 }
             </div>
         `;
+        
+        // Re-render reCAPTCHA if it exists
+        if (typeof onloadCallback === 'function') {
+            onloadCallback();
+        }
     }
 
     async sendOrder(event) {
