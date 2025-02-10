@@ -11,6 +11,26 @@ const headers = {
     'Access-Control-Allow-Methods': 'POST, OPTIONS'
 };
 
+async function verifyRecaptcha(token) {
+    const secret = process.env.RECAPTCHA_SECRET_KEY;
+    const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `secret=${secret}&response=${token}`
+    });
+
+    const result = await response.json();
+    console.log('reCAPTCHA response:', result);
+    
+    if (!result.success) {
+        throw new Error('Invalid reCAPTCHA token');
+    }
+    
+    return result.score >= 0.5;
+}
+
 async function sendOrderEmails(order) {
     // Email to store owner
     const storeEmail = {
@@ -89,23 +109,17 @@ exports.handler = async function(event, context) {
         const data = JSON.parse(event.body);
         
         // Verify reCAPTCHA
-        const recaptchaVerification = await fetch('https://recaptchaenterprise.googleapis.com/v1/projects/selendis/assessments', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                event: {
-                    token: data.recaptchaResponse,
-                    siteKey: '6LdzrtIqAAAAAPKJaPqHIBvuhCQeidklNUnwNweQ',
-                    expectedAction: 'submit_order'
-                }
-            })
-        });
-
-        const recaptchaResult = await recaptchaVerification.json();
-        
-        if (!recaptchaResult.success) {
+        try {
+            const isValid = await verifyRecaptcha(data.recaptchaResponse);
+            if (!isValid) {
+                return {
+                    statusCode: 400,
+                    headers,
+                    body: JSON.stringify({ message: 'reCAPTCHA verification failed - risk score too low' })
+                };
+            }
+        } catch (recaptchaError) {
+            console.error('reCAPTCHA verification error:', recaptchaError);
             return {
                 statusCode: 400,
                 headers,

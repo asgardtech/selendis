@@ -281,9 +281,9 @@ export class Store {
             submitButton.disabled = true;
             submitButton.innerHTML = 'Se trimite...';
 
-            // Execute reCAPTCHA v3 Enterprise
+            // Execute reCAPTCHA v3
             console.log('Waiting for reCAPTCHA...');
-            await new Promise((resolve) => grecaptcha.enterprise.ready(resolve));
+            await new Promise((resolve) => grecaptcha.ready(resolve));
             console.log('reCAPTCHA is ready, executing...');
             
             const recaptchaResponse = await grecaptcha.enterprise.execute('6LdzrtIqAAAAAPKJaPqHIBvuhCQeidklNUnwNweQ', {

@@ -66,13 +66,12 @@
   <script type="module" src="script.js"></script>
   <script>
     function loadRecaptcha() {
-      grecaptcha.enterprise.ready(function () {
-        console.log('reCAPTCHA Enterprise is ready');
+      grecaptcha.ready(function () {
+        console.log('reCAPTCHA is ready');
       });
     }
   </script>
-  <script
-    src="https://www.google.com/recaptcha/enterprise.js?render=6LdzrtIqAAAAAPKJaPqHIBvuhCQeidklNUnwNweQ&onload=loadRecaptcha"></script>
+  <script src="https://www.google.com/recaptcha/api.js?render=YOUR_SITE_KEY&onload=loadRecaptcha"></script>
 </body>
 
 </html>
