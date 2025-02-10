@@ -56,8 +56,15 @@ async function fetchProducts(drive) {
       pageSize: 1000
     });
 
+    // Get images directly from the product folder
+    let photos = files.data.files
+      .filter(f => f.mimeType.startsWith('image/'))
+      .map(f => ({
+        id: f.id,
+        name: f.name
+      }));
+
     const subfolders = files.data.files.filter(f => f.mimeType === 'application/vnd.google-apps.folder');
-    let photos = [];
     let description = '';
     let price = '';
 
@@ -70,15 +77,14 @@ async function fetchProducts(drive) {
       });
 
       if (subfolder.name === 'photos') {
-        photos = subfiles.data.files
+        // Add photos from the photos subfolder
+        const subfolder_photos = subfiles.data.files
           .filter(f => f.mimeType.startsWith('image/'))
           .map(f => ({
-            thumbnail: `https://drive.google.com/thumbnail?id=${f.id}&sz=w200`,  // Grid/list view
-            medium: `https://drive.google.com/thumbnail?id=${f.id}&sz=w600`,     // Product page preview
-            large: `https://drive.google.com/thumbnail?id=${f.id}&sz=w1200`,     // Full size/lightbox
-            original: `https://drive.google.com/thumbnail?id=${f.id}&sz=w2000`   // High-res backup
+            id: f.id,
+            name: f.name
           }));
-        console.log(`Found ${photos.length} photos in ${folder.name}`);
+        photos = [...photos, ...subfolder_photos];
       }
       else if (subfolder.name === 'description' && subfiles.data.files.length > 0) {
         const descFile = subfiles.data.files[0];
@@ -98,10 +104,17 @@ async function fetchProducts(drive) {
       }
     }
 
+    console.log(`Found ${photos.length} photos in ${folder.name}`);
+
+    // Extract title from first line of description
+    const lines = description.split('\n');
+    const title = lines[0] || folder.name;
+    const remainingDescription = lines.slice(1).join('\n').trim() || 'Bijuterie handmade din rășină';
+
     return {
       id: folder.id,
-      title: folder.name,
-      description: description || 'Bijuterie handmade din rășină',
+      title: title,
+      description: remainingDescription,
       price: (price || '99') + ' lei',
       media: photos
     };
@@ -127,13 +140,14 @@ async function refreshCache(drive) {
     return { products, etag, lastModified };
   } catch (error) {
     console.error('Cache refresh failed:', error);
-    return null;
+    throw error; // Re-throw the error to be handled by the caller
   }
 }
 
 exports.handler = async function(event, context) {
   try {
-    const corsHeaders = getCorsHeaders(event.headers.origin);
+    // Handle case when event.headers is undefined (like in test environment)
+    const corsHeaders = event?.headers?.origin ? getCorsHeaders(event.headers.origin) : {};
     
     // Handle preflight requests
     if (event.httpMethod === 'OPTIONS') {
@@ -143,25 +157,25 @@ exports.handler = async function(event, context) {
       };
     }
 
-    // Check cache
-    if (cache.data) {
-      const age = Date.now() - cache.timestamp;
-      const shouldRefresh = age > (CACHE_TTL - REFRESH_THRESHOLD) * 1000;
-      
-      if (shouldRefresh) {
-        // Initialize Drive client for refresh
-        const credentialsJson = Buffer.from(process.env.GOOGLE_CREDENTIALS, 'base64').toString();
-        const credentials = JSON.parse(credentialsJson);
-        const auth = new google.auth.GoogleAuth({
-          credentials,
-          scopes: ['https://www.googleapis.com/auth/drive.readonly']
-        });
-        const drive = google.drive({ version: 'v3', auth });
+    // Check if cache exists and is still valid
+    const now = Date.now();
+    const age = cache.data ? now - cache.timestamp : Infinity;
+    const isExpired = age > CACHE_TTL * 1000;
 
-        // Trigger refresh without waiting
-        refreshCache(drive).catch(err => 
-          console.error('Background refresh failed:', err)
-        );
+    // If cache is expired or doesn't exist, fetch fresh data
+    if (isExpired) {
+      console.log('Cache expired or missing, fetching fresh data...');
+      const credentialsJson = Buffer.from(process.env.GOOGLE_CREDENTIALS, 'base64').toString();
+      const credentials = JSON.parse(credentialsJson);
+      const auth = new google.auth.GoogleAuth({
+        credentials,
+        scopes: ['https://www.googleapis.com/auth/drive.readonly']
+      });
+      const drive = google.drive({ version: 'v3', auth });
+
+      const fresh = await refreshCache(drive);
+      if (!fresh) {
+        throw new Error('Failed to fetch products');
       }
 
       return {
@@ -169,39 +183,26 @@ exports.handler = async function(event, context) {
         headers: {
           ...corsHeaders,
           'Cache-Control': `public, max-age=${CACHE_TTL}`,
-          'ETag': `"${cache.etag}"`,
-          'Last-Modified': cache.lastModified,
-          'X-Cache': 'HIT',
-          'X-Cache-Age': `${age}ms`
+          'ETag': `"${fresh.etag}"`,
+          'Last-Modified': fresh.lastModified,
+          'X-Cache': 'MISS'
         },
-        body: cache.data
+        body: JSON.stringify(fresh.products)
       };
     }
 
-    // No cache, fetch fresh data
-    const credentialsJson = Buffer.from(process.env.GOOGLE_CREDENTIALS, 'base64').toString();
-    const credentials = JSON.parse(credentialsJson);
-    const auth = new google.auth.GoogleAuth({
-      credentials,
-      scopes: ['https://www.googleapis.com/auth/drive.readonly']
-    });
-    const drive = google.drive({ version: 'v3', auth });
-
-    const fresh = await refreshCache(drive);
-    if (!fresh) {
-      throw new Error('Failed to fetch products');
-    }
-
+    // Return valid cache
     return {
       statusCode: 200,
       headers: {
         ...corsHeaders,
         'Cache-Control': `public, max-age=${CACHE_TTL}`,
-        'ETag': `"${fresh.etag}"`,
-        'Last-Modified': fresh.lastModified,
-        'X-Cache': 'MISS'
+        'ETag': `"${cache.etag}"`,
+        'Last-Modified': cache.lastModified,
+        'X-Cache': 'HIT',
+        'X-Cache-Age': `${age}ms`
       },
-      body: JSON.stringify(fresh.products)
+      body: cache.data
     };
 
   } catch (error) {

@@ -2,15 +2,33 @@ export class ProductDisplay {
     constructor() {
         this.modal = document.getElementById('itemModal');
         this.modalContent = document.getElementById('modalContent');
+        
+        // Add ESC key listener
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closeModal();
+            }
+        });
+    }
+
+    normalizeTitle(title) {
+        return title.toLowerCase()
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
     }
 
     createProductCard(product) {
         const div = document.createElement('div');
         div.className = 'product-card';
         
+        const imageUrl = product.media && product.media.length > 0 ? 
+            product.media[0].medium : 
+            'images/placeholder.svg';
+        
         div.innerHTML = `
-            <img src="${product.media[0]}" alt="${product.title}">
-            <h3>${product.title}</h3>
+            <img src="${imageUrl}" alt="${product.title}">
+            <h3>${this.normalizeTitle(product.title)}</h3>
             <p class="price">${product.price}</p>
         `;
         
@@ -18,26 +36,25 @@ export class ProductDisplay {
         return div;
     }
 
+    closeModal() {
+        this.modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
     showProductDetails(product) {
-        const mediaHtml = `
+        // Prevent background scrolling
+        document.body.style.overflow = 'hidden';
+
+        const mediaHtml = product.media && product.media.length > 0 ? `
             <div class="product-images">
-                ${product.media.map(media => {
-                    if (media.endsWith('.mp4')) {
-                        return `
-                            <video controls>
-                                <source src="${media}" type="video/mp4">
-                                Your browser does not support the video tag.
-                            </video>
-                        `;
-                    } else {
-                        return `<img src="${media}" alt="${product.title}">`;
-                    }
-                }).join('')}
+                ${product.media.map(media => 
+                    `<img src="${media.large}" alt="${product.title}">`
+                ).join('')}
             </div>
-        `;
+        ` : '';
 
         this.modalContent.innerHTML = `
-            <h2 class="modal-title">${product.title}</h2>
+            <h2 class="modal-title">${this.normalizeTitle(product.title)}</h2>
             ${mediaHtml}
             <div class="product-details">
                 <p class="description">${product.description}</p>
