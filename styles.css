@@ -25,39 +25,37 @@ body {
 }
 
 header {
-  background: linear-gradient(135deg, var(--accent), var(--primary));
+  background: var(--background);
   padding: 2rem;
   text-align: center;
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--accent);
 }
 
 .store-name {
   font-family: "Great Vibes", cursive;
   font-size: 5rem;
   color: var(--secondary);
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.05);
   margin-bottom: 1rem;
   letter-spacing: 0.05em;
+  font-weight: 400;
 }
 
 nav {
-  margin: 1rem 0;
+  margin-top: 2rem;
 }
 
-button {
-  padding: 0.8rem 1.5rem;
-  margin: 0 0.5rem;
-  cursor: pointer;
-  border: none;
-  background: transparent;
-  font-family: "Playfair Display", serif;
-  font-size: 1.1rem;
+.nav-link {
   color: var(--secondary);
-  transition: all 0.3s ease;
+  text-decoration: none;
+  padding: 0.5rem 1.5rem;
+  margin: 0 1rem;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 1.2rem;
   position: relative;
 }
 
-button::after {
+.nav-link::after {
   content: "";
   position: absolute;
   width: 0;
@@ -65,22 +63,24 @@ button::after {
   bottom: 0;
   left: 50%;
   background-color: var(--secondary);
-  transition: all 0.3s ease;
+  transition:
+    width 0.3s ease-in-out,
+    left 0.3s ease-in-out;
 }
 
-button:hover::after {
-  width: 80%;
-  left: 10%;
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 100%;
+  left: 0;
 }
 
-button.active {
-  color: var(--text);
-  font-weight: 600;
-}
-
-button.active::after {
-  width: 80%;
-  left: 10%;
+#cartCount {
+  background: var(--secondary);
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  margin-left: 0.3rem;
 }
 
 main {
@@ -205,8 +205,23 @@ main {
 
 .buy-section {
   margin-top: 2rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--accent);
+  text-align: center;
+}
+
+.add-to-cart-button {
+  background-color: var(--secondary);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  font-family: "Quicksand", sans-serif;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-to-cart-button:hover {
+  background-color: var(--primary);
 }
 
 .shipping-options {
@@ -287,4 +302,278 @@ h3 {
     justify-self: center;
     width: 100%;
   }
+}
+
+/* Add GDPR styles */
+.gdpr-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  padding: 1rem;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  display: none;
+  text-align: center;
+  border-top: 1px solid var(--accent);
+}
+
+.gdpr-banner.visible {
+  display: block !important; /* Force display when visible class is present */
+}
+
+.gdpr-buttons {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.gdpr-buttons button {
+  background: var(--secondary);
+  color: white;
+  padding: 0.5rem 2rem;
+  border-radius: 25px;
+  border: none;
+  cursor: pointer; /* Add cursor pointer */
+}
+
+.gdpr-buttons button:hover {
+  background-color: var(--text);
+}
+
+.gdpr-link {
+  color: var(--secondary);
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+}
+
+/* Style the home content */
+.home-content {
+  max-width: 800px;
+  margin: 2rem auto;
+  text-align: center;
+  padding: 2rem;
+}
+
+.home-content h2 {
+  color: var(--secondary);
+  margin-bottom: 2rem;
+  font-size: 2rem;
+  line-height: 1.4;
+}
+
+.home-content p {
+  font-size: 1.2rem;
+  line-height: 1.8;
+  color: var(--text);
+}
+
+/* Add privacy page styles */
+.privacy-content {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.privacy-content h1 {
+  color: var(--secondary);
+  margin-bottom: 2rem;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 2.5rem;
+}
+
+.privacy-content h2 {
+  color: var(--secondary);
+  margin: 2rem 0 1rem;
+  font-size: 1.8rem;
+}
+
+.privacy-content p {
+  margin: 1rem 0;
+  line-height: 1.8;
+}
+
+.privacy-content ul {
+  margin: 1rem 0;
+  padding-left: 2rem;
+}
+
+.privacy-content li {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+/* Add a back button */
+.back-to-home {
+  display: inline-block;
+  margin: 1rem 2rem;
+  color: var(--secondary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.back-to-home:hover {
+  text-decoration: underline;
+}
+
+.cart-items {
+  max-height: 60vh;
+  overflow-y: auto;
+  margin: 1rem 0;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--accent);
+  gap: 1rem;
+}
+
+.cart-item img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.cart-item-details {
+  flex: 1;
+}
+
+.remove-item {
+  background: none;
+  border: none;
+  color: var(--secondary);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  z-index: 1100;
+  font-family: "Quicksand", sans-serif;
+  min-width: 300px;
+  position: relative;
+}
+
+.notification button {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background: var(--secondary);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: "Quicksand", sans-serif;
+}
+
+.notification .reservation-note {
+  font-size: 0.9em;
+  color: var(--secondary);
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+.customer-info {
+  margin: 2rem 0;
+  padding: 1rem;
+  background: var(--background);
+  border-radius: 10px;
+}
+
+.form-group {
+  margin: 1rem 0;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-family: "Quicksand", sans-serif;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+  font-family: "Quicksand", sans-serif;
+}
+
+.no-products {
+  text-align: center;
+  padding: 3rem;
+  color: var(--secondary);
+  font-family: "Cormorant Garamond", serif;
+  font-size: 1.5rem;
+}
+
+.modal-title {
+  font-family: "Cormorant Garamond", serif;
+  color: var(--secondary);
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.product-details .description {
+  font-family: "Quicksand", sans-serif;
+  line-height: 1.6;
+  margin: 1.5rem 0;
+}
+
+.product-details .price {
+  font-family: "Cormorant Garamond", serif;
+  color: var(--secondary);
+  font-size: 1.5rem;
+  margin: 1rem 0;
+}
+
+.modal-subtitle {
+  font-family: "Cormorant Garamond", serif;
+  color: var(--secondary);
+  font-size: 1.5rem;
+  margin: 1.5rem 0 1rem;
+}
+
+.cart-item h3 {
+  font-family: "Cormorant Garamond", serif;
+  color: var(--secondary);
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.cart-item .item-price {
+  font-family: "Cormorant Garamond", serif;
+  color: var(--secondary);
+  font-weight: 500;
+}
+
+.cart-item .quantity {
+  font-family: "Quicksand", sans-serif;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.close-notification {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--secondary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.2rem;
 }

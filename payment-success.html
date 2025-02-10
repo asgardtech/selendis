@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ro">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comandă Finalizată - Selendis</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <header>
+    <h1 class="store-name">Selendis</h1>
+  </header>
+  <main>
+    <div class="success-content">
+      <h2>Mulțumim pentru comandă!</h2>
+      <p>Comanda dumneavoastră a fost înregistrată cu succes.</p>
+      <p>Veți primi un email de confirmare în curând.</p>
+      <a href="/" class="back-button">Înapoi la magazin</a>
+    </div>
+  </main>
+  <script>
+    // Send order to Google Forms
+    async function submitOrder() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const orderId = urlParams.get('order_id');
+      const orderData = JSON.parse(localStorage.getItem(`order_${orderId}`));
+
+      if (!orderData) return;
+
+      // Replace with your Google Forms URL
+      const formUrl = 'YOUR_GOOGLE_FORM_URL';
+
+      const formData = new FormData();
+      formData.append('entry.123456789', orderId); // Replace with your form field IDs
+      formData.append('entry.987654321', JSON.stringify(orderData));
+
+      try {
+        await fetch(formUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: formData
+        });
+
+        // Clear cart after successful order
+        localStorage.removeItem('cart');
+        localStorage.removeItem(`order_${orderId}`);
+      } catch (error) {
+        console.error('Error submitting order:', error);
+      }
+    }
+
+    submitOrder();
+  </script>
+</body>
+
+</html>

@@ -21,9 +21,10 @@
   <header>
     <h1 class="store-name">Selendis</h1>
     <nav>
-      <button id="homeBtn" class="active">Acasă</button>
-      <button id="shopBtn">Magazin</button>
-      <button id="aboutBtn">Despre</button>
+      <a href="javascript:void(0)" class="nav-link" id="homeBtn">Acasă</a>
+      <a href="javascript:void(0)" class="nav-link" id="shopBtn">Magazin</a>
+      <a href="javascript:void(0)" class="nav-link" id="aboutBtn">Despre</a>
+      <a href="javascript:void(0)" class="nav-link" id="cartBtn">Coș <span id="cartCount">0</span></a>
     </nav>
   </header>
 
@@ -42,9 +43,31 @@
     <p>&copy; 2024 Selendis. Toate drepturile rezervate.</p>
   </footer>
 
-  <!-- Payment integration scripts -->
-  <script src="https://js.stripe.com/v3/"></script>
-  <script src="script.js"></script>
+  <!-- Move this before the scripts at the bottom of body -->
+  <div id="gdpr-banner" class="gdpr-banner">
+    <p>Acest site folosește cookie-uri pentru a îmbunătăți experiența dumneavoastră.
+      Prin continuarea navigării, vă exprimați acordul asupra folosirii cookie-urilor.</p>
+    <div class="gdpr-buttons">
+      <button onclick="acceptCookies()">Accept</button>
+      <a href="privacy-policy.html" class="gdpr-link">Politica de confidențialitate</a>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script type="module" src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script>
+    (function () {
+      emailjs.init("YOUR_PUBLIC_KEY"); // Get this from Email.js dashboard
+    })();
+  </script>
+  <script>
+    function acceptCookies() {
+      if (window.store) {
+        store.gdpr.acceptCookies();
+      }
+    }
+  </script>
 </body>
 
 </html>
