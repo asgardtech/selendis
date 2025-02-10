@@ -4,6 +4,13 @@ const sgMail = require('@sendgrid/mail');
 // Initialize SendGrid
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
+// CORS headers
+const headers = {
+    'Access-Control-Allow-Origin': 'https://selendis.ro',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS'
+};
+
 async function sendOrderEmails(order) {
     // Email to store owner
     const storeEmail = {
@@ -60,10 +67,20 @@ async function sendOrderEmails(order) {
 }
 
 exports.handler = async function(event, context) {
+    // Handle preflight request
+    if (event.httpMethod === 'OPTIONS') {
+        return {
+            statusCode: 200,
+            headers,
+            body: ''
+        };
+    }
+
     // Only allow POST
     if (event.httpMethod !== 'POST') {
         return {
             statusCode: 405,
+            headers,
             body: JSON.stringify({ message: 'Method Not Allowed' })
         };
     }
@@ -72,12 +89,18 @@ exports.handler = async function(event, context) {
         const data = JSON.parse(event.body);
         
         // Verify reCAPTCHA
-        const recaptchaVerification = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+        const recaptchaVerification = await fetch('https://recaptchaenterprise.googleapis.com/v1/projects/selendis/assessments', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Type': 'application/json',
             },
-            body: `secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${data.recaptchaResponse}`
+            body: JSON.stringify({
+                event: {
+                    token: data.recaptchaResponse,
+                    siteKey: '6LdzrtIqAAAAAPKJaPqHIBvuhCQeidklNUnwNweQ',
+                    expectedAction: 'submit_order'
+                }
+            })
         });
 
         const recaptchaResult = await recaptchaVerification.json();
@@ -85,6 +108,7 @@ exports.handler = async function(event, context) {
         if (!recaptchaResult.success) {
             return {
                 statusCode: 400,
+                headers,
                 body: JSON.stringify({ message: 'reCAPTCHA verification failed' })
             };
         }
@@ -94,12 +118,14 @@ exports.handler = async function(event, context) {
 
         return {
             statusCode: 200,
+            headers,
             body: JSON.stringify({ message: 'Order received successfully' })
         };
     } catch (error) {
         console.error('Error processing order:', error);
         return {
             statusCode: 500,
+            headers,
             body: JSON.stringify({ message: 'Error processing order' })
         };
     }

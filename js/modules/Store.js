@@ -308,7 +308,7 @@ export class Store {
             };
 
             console.log('Sending order to server...');
-            const response = await fetch('/.netlify/functions/submit-order', {
+            const response = await fetch('https://selendis.netlify.app/.netlify/functions/submit-order', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
