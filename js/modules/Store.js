@@ -268,9 +268,12 @@ export class Store {
             </div>
         `;
         
-        // Re-render reCAPTCHA if it exists
-        if (typeof onloadCallback === 'function') {
-            onloadCallback();
+        // Re-render reCAPTCHA if the function exists
+        if (typeof window.renderRecaptcha === 'function') {
+            // Small delay to ensure the DOM is ready
+            setTimeout(() => {
+                window.renderRecaptcha();
+            }, 100);
         }
     }
 
@@ -288,8 +291,14 @@ export class Store {
             submitButton.innerHTML = 'Se trimite...';
 
             // Get reCAPTCHA response
-            const recaptchaResponse = grecaptcha.getResponse();
+            if (typeof grecaptcha === 'undefined') {
+                throw new Error('reCAPTCHA nu s-a încărcat corect. Vă rugăm să reîncărcați pagina.');
+            }
+
+            const recaptchaResponse = grecaptcha.getResponse(window.recaptchaWidget);
             if (!recaptchaResponse) {
+                submitButton.disabled = false;
+                submitButton.innerHTML = 'Trimite Comanda';
                 throw new Error('Vă rugăm să bifați caseta reCAPTCHA');
             }
 

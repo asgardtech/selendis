@@ -18,29 +18,40 @@
 
   <!-- reCAPTCHA setup -->
   <script type="text/javascript">
-    var onloadCallback = function () {
-      if (document.querySelector('.g-recaptcha')) {
-        grecaptcha.render('recaptcha-container', {
-          'sitekey': '6LdeytIqAAAAALsEWs68jTMnxEHVLasyk-LMqu5J',
-          'callback': onRecaptchaSuccess,
-          'expired-callback': onRecaptchaExpired,
-          'error-callback': onRecaptchaError
-        });
+    // Make recaptchaWidget globally accessible
+    window.recaptchaWidget = null;
+
+    window.onloadCallback = function () {
+      try {
+        const container = document.getElementById('recaptcha-container');
+        if (container) {
+          window.recaptchaWidget = grecaptcha.render('recaptcha-container', {
+            'sitekey': '6LdeytIqAAAAALsEWs68jTMnxEHVLasyk-LMqu5J',
+            'callback': function (token) {
+              console.log('reCAPTCHA validated');
+            }
+          });
+        }
+      } catch (error) {
+        console.error('reCAPTCHA initialization error:', error);
       }
     };
 
-    var onRecaptchaSuccess = function (token) {
-      console.log('reCAPTCHA validated');
-    };
-
-    var onRecaptchaExpired = function () {
-      console.log('reCAPTCHA expired');
-      alert('Verificarea a expirat. Vă rugăm să bifați din nou caseta reCAPTCHA.');
-    };
-
-    var onRecaptchaError = function () {
-      console.log('reCAPTCHA error');
-      alert('A apărut o eroare la încărcarea verificării. Vă rugăm să reîncărcați pagina.');
+    window.renderRecaptcha = function () {
+      try {
+        const container = document.getElementById('recaptcha-container');
+        if (container) {
+          if (window.recaptchaWidget === null) {
+            window.recaptchaWidget = grecaptcha.render('recaptcha-container', {
+              'sitekey': '6LdeytIqAAAAALsEWs68jTMnxEHVLasyk-LMqu5J'
+            });
+          } else {
+            grecaptcha.reset(window.recaptchaWidget);
+          }
+        }
+      } catch (error) {
+        console.error('reCAPTCHA render error:', error);
+      }
     };
   </script>
   <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
