@@ -64,14 +64,7 @@
 
   <!-- Scripts -->
   <script type="module" src="script.js"></script>
-  <script>
-    function loadRecaptcha() {
-      grecaptcha.ready(function () {
-        console.log('reCAPTCHA is ready');
-      });
-    }
-  </script>
-  <script src="https://www.google.com/recaptcha/api.js?render=YOUR_SITE_KEY&onload=loadRecaptcha"></script>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </body>
 
 </html>

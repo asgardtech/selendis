@@ -256,6 +256,7 @@ export class Store {
                                         <label for="notes">Note suplimentare</label>
                                         <textarea id="notes" name="notes"></textarea>
                                     </div>
+                                    <div class="g-recaptcha" data-sitekey="6LdeytIqAAAAALsEWs68jTMnxEHVLasyk-LMqu5J"></div>
                                     <button type="submit" class="submit-order">
                                         Trimite Comanda
                                     </button>
@@ -281,15 +282,11 @@ export class Store {
             submitButton.disabled = true;
             submitButton.innerHTML = 'Se trimite...';
 
-            // Execute reCAPTCHA v3
-            console.log('Waiting for reCAPTCHA...');
-            await new Promise((resolve) => grecaptcha.ready(resolve));
-            console.log('reCAPTCHA is ready, executing...');
-            
-            const recaptchaResponse = await grecaptcha.enterprise.execute('6LdzrtIqAAAAAPKJaPqHIBvuhCQeidklNUnwNweQ', {
-                action: 'submit_order'
-            });
-            console.log('reCAPTCHA token received');
+            // Get reCAPTCHA response
+            const recaptchaResponse = grecaptcha.getResponse();
+            if (!recaptchaResponse) {
+                throw new Error('Vă rugăm să bifați caseta reCAPTCHA');
+            }
 
             // Prepare order details
             const orderDetails = {
