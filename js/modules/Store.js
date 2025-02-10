@@ -256,7 +256,7 @@ export class Store {
                                         <label for="notes">Note suplimentare</label>
                                         <textarea id="notes" name="notes"></textarea>
                                     </div>
-                                    <div class="g-recaptcha" data-sitekey="6LdzrtIqAAAAAPKJaPqHIBvuhCQeidklNUnwNweQ"></div>
+                                    <div class="g-recaptcha" data-sitekey="6LdzrtIqAAAAAPKJaPqHIBvuhCQeidklNUnwNweQ" data-callback="recaptchaCallback"></div>
                                     <button type="submit" class="submit-order">
                                         Trimite Comanda
                                     </button>
@@ -276,6 +276,17 @@ export class Store {
         const formData = new FormData(form);
         
         // Verify reCAPTCHA
+        if (typeof grecaptcha === 'undefined') {
+            alert('Eroare la încărcarea reCAPTCHA. Vă rugăm să reîncărcați pagina.');
+            return;
+        }
+
+        const recaptchaElement = form.querySelector('.g-recaptcha');
+        if (!recaptchaElement) {
+            alert('Eroare la încărcarea reCAPTCHA. Vă rugăm să reîncărcați pagina.');
+            return;
+        }
+
         const recaptchaResponse = grecaptcha.getResponse();
         if (!recaptchaResponse) {
             alert('Vă rugăm să confirmați că nu sunteți robot.');
@@ -323,9 +334,14 @@ export class Store {
                 </button>
             `;
             this.productDisplay.modal.style.display = 'block';
+
+            // Reset reCAPTCHA
+            grecaptcha.reset();
         } catch (error) {
             console.error('Error:', error);
             alert('A apărut o eroare la trimiterea comenzii. Vă rugăm să încercați din nou.');
+            // Reset reCAPTCHA on error too
+            grecaptcha.reset();
         }
     }
 } 
