@@ -339,7 +339,7 @@ export class Store {
             this.productDisplay.modalContent.innerHTML = `
                 <h2 class="modal-title">Mulțumim pentru comandă!</h2>
                 <p>Comanda ta a fost trimisă cu succes. Te vom contacta în curând pentru confirmare.</p>
-                <button onclick="store.productDisplay.closeModal()" class="close-button">
+                <button onclick="store.productDisplay.closeModal(); window.location.hash='home';" class="close-button">
                     Închide
                 </button>
             `;
