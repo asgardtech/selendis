@@ -257,10 +257,68 @@ main {
 }
 
 footer {
-  text-align: center;
-  padding: 2rem;
   background: linear-gradient(135deg, var(--accent), var(--primary));
   color: var(--secondary);
+  padding: 3rem 2rem 2rem;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.footer-section {
+  padding: 1rem;
+}
+
+.footer-section h3 {
+  color: var(--secondary);
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.footer-section a {
+  display: block;
+  color: var(--secondary);
+  text-decoration: none;
+  margin: 0.5rem 0;
+  transition: color 0.3s ease;
+}
+
+.footer-section a:hover {
+  color: var(--text);
+}
+
+.anpc-section {
+  text-align: center;
+}
+
+.anpc-links {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.anpc-logo {
+  max-width: 200px;
+  height: auto;
+  transition: opacity 0.3s ease;
+}
+
+.anpc-logo:hover {
+  opacity: 0.8;
+}
+
+.footer-bottom {
+  text-align: center;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(158, 94, 94, 0.2);
 }
 
 h2,
