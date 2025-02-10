@@ -271,25 +271,42 @@ export class Store {
 
     async sendOrder(event) {
         event.preventDefault();
+        console.log('Form submission started');
         
         const form = event.target;
         const formData = new FormData(form);
 
         try {
-            // Verify reCAPTCHA
-            if (typeof grecaptcha === 'undefined') {
-                throw new Error('reCAPTCHA nu s-a încărcat corect');
+            // Debug reCAPTCHA state
+            console.log('Checking reCAPTCHA state:');
+            console.log('- grecaptcha object:', typeof grecaptcha);
+            console.log('- grecaptcha ready:', typeof grecaptcha !== 'undefined' ? Boolean(grecaptcha.ready) : false);
+            
+            const recaptchaDiv = form.querySelector('.g-recaptcha');
+            console.log('- reCAPTCHA div found:', Boolean(recaptchaDiv));
+            if (recaptchaDiv) {
+                console.log('- reCAPTCHA div data-sitekey:', recaptchaDiv.getAttribute('data-sitekey'));
+                console.log('- reCAPTCHA div widget id:', recaptchaDiv.getAttribute('data-widget-id'));
             }
 
+            // Verify reCAPTCHA
+            if (typeof grecaptcha === 'undefined') {
+                console.error('reCAPTCHA not loaded');
+                throw new Error('reCAPTCHA nu s-a încărcat corect. Vă rugăm să reîncărcați pagina.');
+            }
+
+            console.log('Getting reCAPTCHA response...');
             const recaptchaResponse = grecaptcha.getResponse();
+            console.log('reCAPTCHA response length:', recaptchaResponse ? recaptchaResponse.length : 0);
+            
             if (!recaptchaResponse) {
+                console.warn('No reCAPTCHA response');
                 alert('Vă rugăm să confirmați că nu sunteți robot.');
                 return;
             }
 
             // Show loading state
             const submitButton = form.querySelector('button[type="submit"]');
-            const originalButtonText = submitButton.innerHTML;
             submitButton.disabled = true;
             submitButton.innerHTML = 'Se trimite...';
 
@@ -309,6 +326,7 @@ export class Store {
                 recaptchaResponse
             };
 
+            console.log('Sending order to server...');
             const response = await fetch('/.netlify/functions/submit-order', {
                 method: 'POST',
                 headers: {
@@ -321,6 +339,7 @@ export class Store {
                 throw new Error('Eroare la trimiterea comenzii');
             }
 
+            console.log('Order sent successfully');
             // Clear cart after successful order
             this.cart.clear();
             
@@ -334,7 +353,8 @@ export class Store {
             `;
             this.productDisplay.modal.style.display = 'block';
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error during form submission:', error);
+            console.error('Error stack:', error.stack);
             alert(error.message || 'A apărut o eroare la trimiterea comenzii. Vă rugăm să încercați din nou.');
         } finally {
             // Reset form state
@@ -344,7 +364,13 @@ export class Store {
             
             // Reset reCAPTCHA
             if (typeof grecaptcha !== 'undefined') {
-                grecaptcha.reset();
+                try {
+                    console.log('Resetting reCAPTCHA...');
+                    grecaptcha.reset();
+                    console.log('reCAPTCHA reset complete');
+                } catch (e) {
+                    console.error('Error resetting reCAPTCHA:', e);
+                }
             }
         }
     }
