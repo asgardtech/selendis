@@ -28,7 +28,8 @@ async function verifyRecaptcha(token) {
         throw new Error('Invalid reCAPTCHA token');
     }
     
-    return result.score >= 0.5;
+    // For v2 Checkbox, we only need to check success
+    return result.success;
 }
 
 async function sendOrderEmails(order) {
