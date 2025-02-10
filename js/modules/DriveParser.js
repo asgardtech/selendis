@@ -63,7 +63,30 @@ export class DriveParser {
         try {
             const response = await fetch(this.NETLIFY_API);
             if (!response.ok) throw new Error('Failed to fetch products');
-            return await response.json();
+            
+            const products = await response.json();
+            
+            // Log cache status for debugging
+            console.log('Cache status:', {
+                hit: response.headers.get('X-Cache'),
+                age: response.headers.get('X-Cache-Age'),
+                etag: response.headers.get('ETag')
+            });
+
+            // Validate product data
+            if (!Array.isArray(products)) {
+                throw new Error('Invalid products data');
+            }
+
+            // Ensure each product has required fields
+            return products.map(product => ({
+                id: product.id,
+                title: product.title,
+                description: product.description || 'Bijuterie handmade din rășină',
+                price: product.price || '99 lei',
+                media: Array.isArray(product.media) ? product.media : []
+            }));
+
         } catch (error) {
             console.error('Error getting products:', error);
             return [];
