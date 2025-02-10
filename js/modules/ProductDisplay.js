@@ -18,16 +18,30 @@ export class ProductDisplay {
             .join(' ');
     }
 
+    getImageUrl(imageId, size = 'medium') {
+        // Google Drive thumbnail sizes:
+        // small: w200
+        // medium: w400
+        // large: w800
+        const sizes = {
+            small: 'w200',
+            medium: 'w400',
+            large: 'w800'
+        };
+        
+        return `https://drive.google.com/thumbnail?id=${imageId}&sz=${sizes[size]}`;
+    }
+
     createProductCard(product) {
         const div = document.createElement('div');
         div.className = 'product-card';
         
         const imageUrl = product.media && product.media.length > 0 ? 
-            product.media[0].medium : 
+            this.getImageUrl(product.media[0].id, 'medium') : 
             'images/placeholder.svg';
         
         div.innerHTML = `
-            <img src="${imageUrl}" alt="${product.title}">
+            <img src="${imageUrl}" alt="${product.title}" loading="lazy">
             <h3>${this.normalizeTitle(product.title)}</h3>
             <p class="price">${product.price}</p>
         `;
@@ -48,7 +62,7 @@ export class ProductDisplay {
         const mediaHtml = product.media && product.media.length > 0 ? `
             <div class="product-images">
                 ${product.media.map(media => 
-                    `<img src="${media.large}" alt="${product.title}">`
+                    `<img src="${this.getImageUrl(media.id, 'large')}" alt="${product.title}" loading="lazy">`
                 ).join('')}
             </div>
         ` : '';
@@ -57,7 +71,7 @@ export class ProductDisplay {
             <h2 class="modal-title">${this.normalizeTitle(product.title)}</h2>
             ${mediaHtml}
             <div class="product-details">
-                <p class="description">${product.description}</p>
+                <p class="description">${product.description.replace(/\n/g, '<br>')}</p>
                 <p class="price">${product.price}</p>
                 <div class="buy-section">
                     <button class="add-to-cart-button" onclick="store.addToCart('${product.id}')">
