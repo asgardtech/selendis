@@ -65,14 +65,14 @@
   <!-- Scripts -->
   <script type="module" src="script.js"></script>
   <script>
-    // Debug reCAPTCHA loading
-    window.onload = function () {
-      console.log('Window loaded');
-      console.log('grecaptcha available:', typeof grecaptcha !== 'undefined');
-    };
+    function loadRecaptcha() {
+      grecaptcha.enterprise.ready(function () {
+        console.log('reCAPTCHA Enterprise is ready');
+      });
+    }
   </script>
-  <script src="https://www.google.com/recaptcha/api.js" async defer onload="console.log('reCAPTCHA script loaded')"
-    onerror="console.error('reCAPTCHA script failed to load')"></script>
+  <script
+    src="https://www.google.com/recaptcha/enterprise.js?render=6LdzrtIqAAAAAPKJaPqHIBvuhCQeidklNUnwNweQ&onload=loadRecaptcha"></script>
 </body>
 
 </html>

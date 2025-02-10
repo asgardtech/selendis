@@ -256,7 +256,6 @@ export class Store {
                                         <label for="notes">Note suplimentare</label>
                                         <textarea id="notes" name="notes"></textarea>
                                     </div>
-                                    <div class="g-recaptcha" data-sitekey="6LdzrtIqAAAAAPKJaPqHIBvuhCQeidklNUnwNweQ"></div>
                                     <button type="submit" class="submit-order">
                                         Trimite Comanda
                                     </button>
@@ -277,38 +276,20 @@ export class Store {
         const formData = new FormData(form);
 
         try {
-            // Debug reCAPTCHA state
-            console.log('Checking reCAPTCHA state:');
-            console.log('- grecaptcha object:', typeof grecaptcha);
-            console.log('- grecaptcha ready:', typeof grecaptcha !== 'undefined' ? Boolean(grecaptcha.ready) : false);
-            
-            const recaptchaDiv = form.querySelector('.g-recaptcha');
-            console.log('- reCAPTCHA div found:', Boolean(recaptchaDiv));
-            if (recaptchaDiv) {
-                console.log('- reCAPTCHA div data-sitekey:', recaptchaDiv.getAttribute('data-sitekey'));
-                console.log('- reCAPTCHA div widget id:', recaptchaDiv.getAttribute('data-widget-id'));
-            }
-
-            // Verify reCAPTCHA
-            if (typeof grecaptcha === 'undefined') {
-                console.error('reCAPTCHA not loaded');
-                throw new Error('reCAPTCHA nu s-a încărcat corect. Vă rugăm să reîncărcați pagina.');
-            }
-
-            console.log('Getting reCAPTCHA response...');
-            const recaptchaResponse = grecaptcha.getResponse();
-            console.log('reCAPTCHA response length:', recaptchaResponse ? recaptchaResponse.length : 0);
-            
-            if (!recaptchaResponse) {
-                console.warn('No reCAPTCHA response');
-                alert('Vă rugăm să confirmați că nu sunteți robot.');
-                return;
-            }
-
             // Show loading state
             const submitButton = form.querySelector('button[type="submit"]');
             submitButton.disabled = true;
             submitButton.innerHTML = 'Se trimite...';
+
+            // Execute reCAPTCHA v3 Enterprise
+            console.log('Waiting for reCAPTCHA...');
+            await new Promise((resolve) => grecaptcha.enterprise.ready(resolve));
+            console.log('reCAPTCHA is ready, executing...');
+            
+            const recaptchaResponse = await grecaptcha.enterprise.execute('6LdzrtIqAAAAAPKJaPqHIBvuhCQeidklNUnwNweQ', {
+                action: 'submit_order'
+            });
+            console.log('reCAPTCHA token received');
 
             // Prepare order details
             const orderDetails = {
@@ -361,17 +342,6 @@ export class Store {
             const submitButton = form.querySelector('button[type="submit"]');
             submitButton.disabled = false;
             submitButton.innerHTML = 'Trimite Comanda';
-            
-            // Reset reCAPTCHA
-            if (typeof grecaptcha !== 'undefined') {
-                try {
-                    console.log('Resetting reCAPTCHA...');
-                    grecaptcha.reset();
-                    console.log('reCAPTCHA reset complete');
-                } catch (e) {
-                    console.error('Error resetting reCAPTCHA:', e);
-                }
-            }
         }
     }
 } 
