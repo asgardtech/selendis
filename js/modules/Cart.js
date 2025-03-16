@@ -22,12 +22,23 @@ export class Cart {
         
         this.save();
         this.updateCartUI();
+        
+        // Update hamburger indicator
+        if (window.store && typeof window.store.updateCartIndicator === 'function') {
+            window.store.updateCartIndicator();
+        }
     }
 
     removeItem(productId) {
         this.items = this.items.filter(item => item.id !== productId);
         this.save();
         this.updateCartUI();
+        
+        // Update hamburger indicator
+        if (window.store && typeof window.store.updateCartIndicator === 'function') {
+            window.store.updateCartIndicator();
+        }
+        
         // Immediately update the cart page
         if (window.location.hash === '#cart') {
             window.store.showCart();
@@ -38,6 +49,11 @@ export class Cart {
         this.items = [];
         this.save();
         this.updateCartUI();
+        
+        // Update hamburger indicator
+        if (window.store && typeof window.store.updateCartIndicator === 'function') {
+            window.store.updateCartIndicator();
+        }
     }
 
     save() {
@@ -47,11 +63,15 @@ export class Cart {
     getTotal() {
         return this.items.reduce((total, item) => total + item.price, 0);
     }
+    
+    getTotalItems() {
+        return this.items.length;
+    }
 
     updateCartUI() {
         const cartCount = document.getElementById('cartCount');
         if (cartCount) {
-            const totalItems = this.items.length;
+            const totalItems = this.getTotalItems();
             cartCount.textContent = totalItems || '';
             cartCount.style.display = totalItems ? 'inline' : 'none';
         }

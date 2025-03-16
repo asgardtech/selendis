@@ -1,5 +1,10 @@
 @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Quicksand:wght@300;400;500;600&family=Great+Vibes&display=swap");
 
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -223,6 +228,10 @@ main {
 .buy-section {
   margin-top: 2rem;
   text-align: center;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .add-to-cart-button {
@@ -1242,11 +1251,341 @@ h3 {
 }
 
 @media (max-width: 768px) {
-  nav {
-    flex-wrap: wrap;
+  header {
+    padding: 1.5rem 1rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
-
+  
+  .store-name {
+    font-size: 3.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .hamburger-menu {
+    display: flex;
+    position: absolute;
+    top: 20px;
+    right: 15px;
+    padding: 10px;
+    z-index: 1002;
+  }
+  
+  .hamburger-menu span {
+    background-color: var(--secondary);
+    height: 3px;
+    width: 30px;
+  }
+  
+  .nav-container {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: rgba(255, 249, 249, 0.98);
+    z-index: 1000;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+  }
+  
+  .nav-container.active {
+    display: flex;
+  }
+  
+  nav {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .nav-link {
+    margin: 0.5rem 0;
+    padding: 0.8rem 1rem;
+    width: 80%;
+    text-align: center;
+    border: 1px solid var(--accent);
+    border-radius: 5px;
+    background-color: white;
+    font-size: 1.2rem;
+  }
+  
   .social-icons {
-    margin-top: 1rem;
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+  }
+  
+  main {
+    padding: 1rem;
+    margin: 1rem auto;
+  }
+  
+  .product-card {
+    padding: 1rem;
+  }
+  
+  .modal-content {
+    width: 95%;
+    padding: 1.5rem;
+    margin: 2% auto;
+    max-height: 95vh;
+  }
+  
+  .close {
+    right: 15px;
+    top: 10px;
+    font-size: 24px;
+  }
+  
+  .product-images {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .footer-content {
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .footer-section {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .anpc-links {
+    justify-content: center;
+  }
+  
+  .gdpr-banner {
+    padding: 1rem;
+  }
+  
+  .gdpr-buttons {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+/* Ensure gallery is always one column on mobile */
+@media (max-width: 767px) {
+  #productGrid,
+  .product-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem;
+  }
+  
+  .product-images {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .product-card {
+    max-width: 100%;
+  }
+}
+
+/* Remove the conflicting media query that sets 2 columns */
+@media (min-width: 481px) and (max-width: 767px) {
+  .product-grid {
+    gap: 1rem;
+  }
+}
+
+/* Add more specific media queries for different screen sizes */
+@media (min-width: 481px) and (max-width: 767px) {
+  .product-grid {
+    gap: 1rem;
+  }
+}
+
+/* Ensure gallery is always one column on mobile */
+@media (max-width: 767px) {
+  #productGrid,
+  .product-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem;
+  }
+  
+  .product-images {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .product-card {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .product-card {
+    max-width: 100%;
+  }
+  
+  .buy-section {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .add-to-cart-button, 
+  .payment-button {
+    width: 100%;
+  }
+}
+
+/* Improved responsive design for cart page */
+
+/* More compact footer on mobile */
+@media (max-width: 768px) {
+  footer {
+    padding: 1.5rem 1rem 1rem;
+  }
+  
+  .footer-content {
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .footer-section {
+    padding: 0.5rem;
+  }
+  
+  .footer-section h3 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .footer-section a {
+    margin: 0.2rem 0;
+    font-size: 0.9rem;
+  }
+  
+  .footer-section p {
+    font-size: 0.9rem;
+    margin: 0.2rem 0;
+  }
+  
+  .anpc-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .anpc-links {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .anpc-links a img {
+    width: 180px !important;
+    margin: 0 !important;
+  }
+  
+  .footer-bottom {
+    padding-top: 1rem;
+  }
+  
+  .footer-bottom p {
+    font-size: 0.8rem;
+  }
+}
+
+/* Add hamburger menu styles */
+.hamburger-menu {
+  display: none; /* Hidden by default */
+  flex-direction: column;
+  justify-content: space-between;
+  width: 30px;
+  height: 21px;
+  cursor: pointer;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1001;
+  background-color: transparent;
+  border: none;
+  padding: 5px;
+}
+
+.hamburger-menu span {
+  display: block;
+  height: 3px;
+  width: 100%;
+  background-color: var(--secondary);
+  border-radius: 3px;
+  transition: all 0.3s ease;
+  margin: 2px 0;
+}
+
+.hamburger-menu.active span:nth-child(1) {
+  transform: translateY(9px) rotate(45deg);
+}
+
+.hamburger-menu.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-menu.active span:nth-child(3) {
+  transform: translateY(-9px) rotate(-45deg);
+}
+
+.nav-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .nav-container {
+    display: flex; /* Keep it visible on desktop */
+    position: static;
+    height: auto;
+    background-color: transparent;
+    padding: 0;
+  }
+  
+  .hamburger-menu {
+    display: none; /* Hide hamburger initially */
+  }
+}
+
+/* Then restore mobile menu behavior */
+@media (max-width: 768px) {
+  .nav-container {
+    display: none; /* Hide by default on mobile */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: rgba(255, 249, 249, 0.98);
+    z-index: 1000;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+  }
+  
+  .nav-container.active {
+    display: flex; /* Only show when active */
+  }
+  
+  .hamburger-menu {
+    display: flex; /* Show hamburger on mobile */
+    position: absolute;
+    top: 20px;
+    right: 15px;
+    padding: 10px;
+    z-index: 1002; /* Make sure it's above the overlay */
   }
 }

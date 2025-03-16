@@ -15,6 +15,7 @@
   <meta property="og:url" content="https://selendis.ro">
   <meta property="og:type" content="website">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="fix.css">
 
   <!-- reCAPTCHA setup -->
   <script type="text/javascript">
@@ -69,19 +70,27 @@
 
 <body>
   <header>
+    <div class="hamburger-menu" id="hamburgerMenu" style="display: flex; flex-direction: column; justify-content: space-between; width: 40px; height: 40px; position: fixed; top: 15px; right: 15px; z-index: 1010; background-color: rgba(255,255,255,0.9); border: 2px solid #9e5e5e; padding: 10px 8px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
+      <span style="display: block; height: 2px; width: 22px; background-color: #9e5e5e; margin: 0; border-radius: 1px;"></span>
+      <span style="display: block; height: 2px; width: 22px; background-color: #9e5e5e; margin: 0; border-radius: 1px;"></span>
+      <span style="display: block; height: 2px; width: 22px; background-color: #9e5e5e; margin: 0; border-radius: 1px;"></span>
+      <div id="hamburgerCartIndicator" class="cart-indicator" style="display: none; position: absolute; top: -5px; right: -5px; width: 16px; height: 16px; background-color: #e74c3c; border-radius: 50%; color: white; font-size: 10px; line-height: 16px; text-align: center; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>
+    </div>
     <h1 class="store-name">Selendis</h1>
-    <nav>
-      <a href="javascript:void(0)" class="nav-link" id="homeBtn">Acasă</a>
-      <a href="javascript:void(0)" class="nav-link" id="shopBtn">Magazin</a>
-      <a href="javascript:void(0)" class="nav-link" id="aboutBtn">Despre</a>
-      <a href="javascript:void(0)" class="nav-link" id="cartBtn">Coș <span id="cartCount">0</span></a>
-      <div class="social-icons">
-        <a href="https://www.facebook.com/selendishandmadegifts/" target="_blank" rel="noopener"
-          class="social-icon facebook" aria-label="Facebook"></a>
-        <a href="https://www.instagram.com/selendis_decoratiuni_rasina/" target="_blank" rel="noopener"
-          class="social-icon instagram" aria-label="Instagram"></a>
-      </div>
-    </nav>
+    <div class="nav-container" id="navContainer">
+      <nav>
+        <a href="javascript:void(0)" class="nav-link" id="homeBtn">Acasă</a>
+        <a href="javascript:void(0)" class="nav-link" id="shopBtn">Magazin</a>
+        <a href="javascript:void(0)" class="nav-link" id="aboutBtn">Despre</a>
+        <a href="javascript:void(0)" class="nav-link" id="cartBtn">Coș <span id="cartCount">0</span></a>
+        <div class="social-icons">
+          <a href="https://www.facebook.com/selendishandmadegifts/" target="_blank" rel="noopener"
+            class="social-icon facebook" aria-label="Facebook"></a>
+          <a href="https://www.instagram.com/selendis_decoratiuni_rasina/" target="_blank" rel="noopener"
+            class="social-icon instagram" aria-label="Instagram"></a>
+        </div>
+      </nav>
+    </div>
   </header>
 
   <main id="mainContent">
@@ -144,6 +153,25 @@
 
   <!-- Scripts -->
   <script type="module" src="script.js"></script>
+  
+  <!-- Hamburger menu visibility fix -->
+  <script>
+    // Ensure hamburger menu is visible on mobile
+    function checkHamburgerMenu() {
+      const hamburger = document.getElementById('hamburgerMenu');
+      const isMobile = window.innerWidth <= 768;
+      
+      if (isMobile) {
+        hamburger.style.display = 'flex';
+      } else {
+        hamburger.style.display = 'none';
+      }
+    }
+    
+    // Run on page load and window resize
+    window.addEventListener('load', checkHamburgerMenu);
+    window.addEventListener('resize', checkHamburgerMenu);
+  </script>
 </body>
 
 </html>

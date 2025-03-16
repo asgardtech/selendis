@@ -12,9 +12,15 @@ export class Store {
         this.gdpr = new GDPR();
         this.loadingScreen = new LoadingScreen();
         this._products = null;
+        this.hamburgerCartIndicator = document.getElementById('hamburgerCartIndicator');
         
         // Initialize navigation
         this.initializeEventListeners();
+        
+        // Set the default hash to 'shop' if there's no hash
+        if (!window.location.hash) {
+            window.location.hash = 'shop';
+        }
         
         // Handle initial route
         this.handleRoute();
@@ -30,6 +36,9 @@ export class Store {
         }).catch(error => {
             console.error('Error preloading products:', error);
         });
+        
+        // Initialize cart indicator
+        this.updateCartIndicator();
     }
 
     initializeEventListeners() {
@@ -38,13 +47,96 @@ export class Store {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 const page = link.id.replace('Btn', '');
+                
+                // Close mobile menu when a link is clicked - ONLY in mobile view
+                const navContainer = document.getElementById('navContainer');
+                const hamburger = document.getElementById('hamburgerMenu');
+                const isMobile = window.innerWidth <= 768;
+                
+                if (isMobile) {
+                    navContainer.classList.remove('active');
+                    hamburger.classList.remove('active');
+                    
+                    // Explicitly set display style to none ONLY for mobile
+                    navContainer.style.display = 'none';
+                    
+                    // Reset hamburger icon when closing menu
+                    const spans = hamburger.querySelectorAll('span');
+                    spans.forEach(span => {
+                        span.style.transform = 'none';
+                        span.style.opacity = '1';
+                    });
+                }
+                
+                // Scroll to top when clicking navigation links
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+                
+                // Set the URL fragment
                 window.location.hash = page;
             });
         });
+        
+        // Hamburger menu functionality
+        const hamburgerMenu = document.getElementById('hamburgerMenu');
+        const navContainer = document.getElementById('navContainer');
+        
+        if (hamburgerMenu && navContainer) {
+            hamburgerMenu.addEventListener('click', (event) => {
+                event.stopPropagation(); // Stop event bubbling
+                
+                hamburgerMenu.classList.toggle('active');
+                navContainer.classList.toggle('active');
+                
+                // Explicitly set display style
+                if (navContainer.classList.contains('active')) {
+                    navContainer.style.display = 'flex';
+                } else {
+                    navContainer.style.display = 'none';
+                }
+                
+                // Apply X animation directly to spans
+                const spans = hamburgerMenu.querySelectorAll('span');
+                if (hamburgerMenu.classList.contains('active')) {
+                    spans[0].style.transform = 'translateY(7px) rotate(45deg)';
+                    spans[1].style.opacity = '0';
+                    spans[2].style.transform = 'translateY(-7px) rotate(-45deg)';
+                } else {
+                    spans[0].style.transform = 'none';
+                    spans[1].style.opacity = '1';
+                    spans[2].style.transform = 'none';
+                }
+            });
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', (event) => {
+                // If menu is active and we're clicking either outside or on a menu item
+                if (navContainer.classList.contains('active') && 
+                    (!hamburgerMenu.contains(event.target) || event.target.closest('.nav-link'))) {
+                    hamburgerMenu.classList.remove('active');
+                    navContainer.classList.remove('active');
+                    navContainer.style.display = 'none';
+                    
+                    // Reset hamburger icon
+                    const spans = hamburgerMenu.querySelectorAll('span');
+                    spans[0].style.transform = 'none';
+                    spans[1].style.opacity = '1';
+                    spans[2].style.transform = 'none';
+                }
+            });
+        }
     }
 
     handleRoute() {
-        const page = window.location.hash.slice(1) || 'home';
+        const page = window.location.hash.slice(1) || 'shop';
+        
+        // Scroll to top when route changes
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
         
         // Update active button state
         document.querySelectorAll('.nav-link').forEach(link => {
@@ -64,8 +156,10 @@ export class Store {
                 this.showCart();
                 break;
             case 'home':
-            default:
                 this.showHome();
+                break;
+            default:
+                this.showShop(); // Default to shop instead of home
                 break;
         }
     }
@@ -108,12 +202,32 @@ export class Store {
                 return;
             }
 
-            products.forEach(product => {
-                if (product.available !== false) {
-                    const productCard = this.productDisplay.createProductCard(product);
-                    productGrid.appendChild(productCard);
+            // Add this debug code to ensure products are loaded
+            console.log(`Found ${products.length} products`);
+            
+            // Add a fallback in case productGrid isn't found
+            if (!productGrid) {
+                console.error("Product grid element not found");
+                this.mainContent.innerHTML = '<div class="product-grid" id="productGrid"></div>';
+                const retryGrid = document.getElementById('productGrid');
+                if (!retryGrid) {
+                    throw new Error("Failed to create product grid");
                 }
-            });
+                
+                products.forEach(product => {
+                    if (product.available !== false) {
+                        const productCard = this.productDisplay.createProductCard(product);
+                        retryGrid.appendChild(productCard);
+                    }
+                });
+            } else {
+                products.forEach(product => {
+                    if (product.available !== false) {
+                        const productCard = this.productDisplay.createProductCard(product);
+                        productGrid.appendChild(productCard);
+                    }
+                });
+            }
         } catch (error) {
             console.error('Error loading products:', error);
             this.loadingScreen.showError(
@@ -164,6 +278,9 @@ export class Store {
             }
             
             this.cart.addItem(product);
+            
+            // Update cart indicator
+            this.updateCartIndicator();
             
             // Show notification
             const notification = document.createElement('div');
@@ -364,6 +481,31 @@ export class Store {
             const submitButton = form.querySelector('button[type="submit"]');
             submitButton.disabled = false;
             submitButton.innerHTML = 'Trimite Comanda';
+        }
+    }
+
+    // Update the cart indicator on the hamburger menu
+    updateCartIndicator() {
+        const cartCount = this.cart.getTotalItems();
+        const indicator = this.hamburgerCartIndicator;
+        
+        if (cartCount > 0) {
+            indicator.style.display = 'block';
+            indicator.innerText = cartCount > 9 ? '9+' : cartCount;
+            // Reset animation
+            indicator.style.animation = 'none';
+            // Trigger reflow
+            void indicator.offsetWidth;
+            // Re-add animation
+            indicator.style.animation = 'pulse 1s ease-in-out';
+        } else {
+            indicator.style.display = 'none';
+        }
+        
+        // Also update cart count in the navigation
+        const cartCountElement = document.getElementById('cartCount');
+        if (cartCountElement) {
+            cartCountElement.innerText = cartCount;
         }
     }
 } 
