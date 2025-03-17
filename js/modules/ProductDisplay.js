@@ -9,6 +9,12 @@ export class ProductDisplay {
                 this.closeModal();
             }
         });
+        
+        // Add click listener for the close button (X)
+        const closeButton = this.modal.querySelector('.close');
+        if (closeButton) {
+            closeButton.addEventListener('click', () => this.closeModal());
+        }
     }
 
     normalizeTitle(title) {
