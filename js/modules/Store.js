@@ -152,6 +152,9 @@ export class Store {
             case 'about':
                 this.showAbout();
                 break;
+            case 'transport':
+                this.showTransport();
+                break;
             case 'cart':
                 this.showCart();
                 break;
@@ -250,6 +253,61 @@ export class Store {
         `;
     }
 
+    showTransport() {
+        this.mainContent.innerHTML = `
+            <div class="home-content">
+                <h2>Transport și Livrare</h2>
+                
+                <div class="transport-section">
+                    <div class="transport-step">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                        <h3>Procesarea Comenzii</h3>
+                        <p>După plasarea comenzii, veți fi contactat telefonic pentru confirmarea acesteia, verificarea detaliilor și programarea livrării.</p>
+                    </div>
+
+                    <div class="transport-step">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="1" y="3" width="15" height="13"></rect>
+                                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                            </svg>
+                        </div>
+                        <h3>Expediere Rapidă</h3>
+                        <p>Expediem coletul dumneavoastră în maximum 2 zile lucrătoare de la confirmarea comenzii. Urmărim cu atenție procesul pentru a ne asigura că produsele ajung la dumneavoastră în cel mai scurt timp.</p>
+                    </div>
+
+                    <div class="transport-step">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                                <path d="M12 16v.01"></path>
+                                <path d="M8 12h8"></path>
+                                <path d="M8 8h8"></path>
+                            </svg>
+                        </div>
+                        <h3>Plată Ramburs</h3>
+                        <p>Plata se face ramburs (la primirea coletului). Costul include valoarea produsului comandat plus taxa de transport.</p>
+                    </div>
+                </div>
+
+                <h3>Costuri de Transport</h3>
+                
+                <p><strong>Bijuterii și Accesorii:</strong> Pentru toate bijuteriile și accesoriile mici, taxa de transport este fixă: <span class="price-highlight">20 lei</span></p>
+                
+                <p><strong>Alte Produse:</strong> Pentru celelalte produse (decorațiuni mai mari, seturi, etc.), costul de transport variază în funcție de greutate (per kg). Veți fi informat despre costul exact de transport în momentul confirmării telefonice a comenzii.</p>
+                
+                <p class="transport-note">Toate coletele sunt ambalate cu grijă pentru a asigura că produsele dvs. ajung în condiții perfecte. Transportul se realizează prin servicii de curierat rapid, pentru a asigura livrarea promptă și în siguranță.</p>
+            </div>
+        `;
+    }
+
     async loadProducts() {
         try {
             return await DriveParser.getAllProducts('https://drive.google.com/drive/folders/1Tbo0fOEn_IUfJZULGJ3hPfWKipytoniJ');
@@ -342,7 +400,7 @@ export class Store {
                                             <h3>${item.title}</h3>
                                             <p class="price">${item.price} Lei</p>
                                             <div class="quantity-controls">
-                                                <button onclick="store.cart.removeItem('${item.id}')">Șterge</button>
+                                                <button onclick="window.store.cart.removeItem('${item.id}')">Șterge</button>
                                             </div>
                                         </div>
                                     </div>
@@ -353,43 +411,41 @@ export class Store {
                             </div>
                         </div>
                         <div class="cart-form-column">
-                            <div class="cart-summary">
-                                <form id="orderForm" class="order-form" onsubmit="store.sendOrder(event)">
-                                    <h3>Detalii comandă</h3>
-                                    <div class="form-group">
-                                        <label for="name">Nume complet*</label>
-                                        <input type="text" id="name" name="name" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="email">Email*</label>
-                                        <input type="email" id="email" name="email" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="phone">Telefon*</label>
-                                        <input type="tel" id="phone" name="phone" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="address">Adresa de livrare*</label>
-                                        <textarea id="address" name="address" required></textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="notes">Note suplimentare</label>
-                                        <textarea id="notes" name="notes"></textarea>
-                                    </div>
-                                    <div class="form-group terms-agreement">
-                                        <label class="checkbox-label">
-                                            <input type="checkbox" id="terms-agreement" name="terms-agreement" required>
-                                            <span>Sunt de acord cu <a href="/termeni-si-conditii.html" target="_blank">Termenii și Condițiile</a>, 
-                                            <a href="/politica-de-retur.html" target="_blank">Politica de Retur</a> și 
-                                            <a href="/politica-de-confidentialitate.html" target="_blank">Politica de Confidențialitate</a>.</span>
-                                        </label>
-                                    </div>
-                                    <div id="recaptcha-container"></div>
-                                    <button type="submit" class="submit-order">
-                                        Trimite Comanda
-                                    </button>
-                                </form>
-                            </div>
+                            <h3>Detalii comandă</h3>
+                            <form id="orderForm" class="order-form" onsubmit="store.sendOrder(event)">
+                                <div class="form-group">
+                                    <label for="name">Nume complet*</label>
+                                    <input type="text" id="name" name="name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="email">Email*</label>
+                                    <input type="email" id="email" name="email" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="phone">Telefon*</label>
+                                    <input type="tel" id="phone" name="phone" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="address">Adresa de livrare*</label>
+                                    <textarea id="address" name="address" required></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="notes">Note suplimentare</label>
+                                    <textarea id="notes" name="notes"></textarea>
+                                </div>
+                                <div class="form-group terms-agreement">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="terms-agreement" name="terms-agreement" required>
+                                        <span>Sunt de acord cu <a href="/termeni-si-conditii.html" target="_blank">Termenii și Condițiile</a>, 
+                                        <a href="/politica-de-retur.html" target="_blank">Politica de Retur</a> și 
+                                        <a href="/politica-de-confidentialitate.html" target="_blank">Politica de Confidențialitate</a>.</span>
+                                    </label>
+                                </div>
+                                <div id="recaptcha-container"></div>
+                                <button type="submit" class="submit-order">
+                                    Trimite Comanda
+                                </button>
+                            </form>
                         </div>
                     </div>`
                 }
