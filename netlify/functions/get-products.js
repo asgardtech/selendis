@@ -8,8 +8,12 @@ let cache = {
   timestamp: null
 };
 
-const CACHE_TTL = 5; // seconds
-const REFRESH_THRESHOLD = 3; // seconds before expiry to trigger refresh
+// Cache time-to-live. Keep short – we rely on SWR to keep data fresh.
+const CACHE_TTL = 60;            // seconds products are considered "fresh"
+const REFRESH_THRESHOLD = 30;    // seconds before expiry to trigger background refresh
+
+// Tracks an inflight cache refresh so we don't start multiple concurrent ones
+let refreshInProgress = null;
 
 const ALLOWED_ORIGINS = [
   'https://selendis.ro',
@@ -146,6 +150,9 @@ async function refreshCache(drive) {
 }
 
 exports.handler = async function(event, context) {
+  // Allow the function to return while asynchronous work keeps running
+  context.callbackWaitsForEmptyEventLoop = false;
+
   try {
     // Handle case when event.headers is undefined (like in test environment)
     const corsHeaders = event?.headers?.origin ? getCorsHeaders(event.headers.origin) : {};
@@ -158,52 +165,71 @@ exports.handler = async function(event, context) {
       };
     }
 
-    // Check if cache exists and is still valid
+    // Determine cache age and whether it's time to refresh
     const now = Date.now();
-    const age = cache.data ? now - cache.timestamp : Infinity;
-    const isExpired = age > CACHE_TTL * 1000;
+    const ageMs = cache.data ? now - cache.timestamp : Infinity;
+    const isExpired = ageMs > CACHE_TTL * 1000;
+    const needsRefresh = isExpired || ageMs > (CACHE_TTL - REFRESH_THRESHOLD) * 1000;
 
-    // If cache is expired or doesn't exist, fetch fresh data
-    if (isExpired) {
-      console.log('Cache expired or missing, fetching fresh data...');
-      const credentialsJson = Buffer.from(process.env.GOOGLE_CREDENTIALS, 'base64').toString();
-      const credentials = JSON.parse(credentialsJson);
-      const auth = new google.auth.GoogleAuth({
-        credentials,
-        scopes: ['https://www.googleapis.com/auth/drive.readonly']
-      });
-      const drive = google.drive({ version: 'v3', auth });
+    // Kick off a background refresh if necessary (but do not wait for it)
+    if (needsRefresh && !refreshInProgress) {
+      console.log('Triggering background refresh…');
+      refreshInProgress = (async () => {
+        try {
+          const credentialsJson = Buffer.from(process.env.GOOGLE_CREDENTIALS, 'base64').toString();
+          const credentials = JSON.parse(credentialsJson);
+          const auth = new google.auth.GoogleAuth({
+            credentials,
+            scopes: ['https://www.googleapis.com/auth/drive.readonly']
+          });
+          const drive = google.drive({ version: 'v3', auth });
+          await refreshCache(drive);
+          console.log('Background refresh complete');
+        } catch (err) {
+          console.error('Background refresh failed:', err);
+        } finally {
+          refreshInProgress = null;
+        }
+      })();
+    }
 
-      const fresh = await refreshCache(drive);
-      if (!fresh) {
-        throw new Error('Failed to fetch products');
-      }
-
+    // If we have cached data – serve it immediately
+    if (cache.data) {
       return {
         statusCode: 200,
         headers: {
           ...corsHeaders,
           'Cache-Control': `public, max-age=${CACHE_TTL}`,
-          'ETag': `"${fresh.etag}"`,
-          'Last-Modified': fresh.lastModified,
-          'X-Cache': 'MISS'
+          'ETag': `"${cache.etag}"`,
+          'Last-Modified': cache.lastModified,
+          'X-Cache': isExpired ? 'STALE' : 'HIT',
+          'X-Cache-Age': `${ageMs}ms`
         },
-        body: JSON.stringify(fresh.products)
+        body: cache.data
       };
     }
 
-    // Return valid cache
+    // No cache yet (cold start) – fetch synchronously this once
+    console.log('Cold start – fetching initial product list');
+    const credentialsJson = Buffer.from(process.env.GOOGLE_CREDENTIALS, 'base64').toString();
+    const credentials = JSON.parse(credentialsJson);
+    const auth = new google.auth.GoogleAuth({
+      credentials,
+      scopes: ['https://www.googleapis.com/auth/drive.readonly']
+    });
+    const drive = google.drive({ version: 'v3', auth });
+
+    const fresh = await refreshCache(drive);
     return {
       statusCode: 200,
       headers: {
         ...corsHeaders,
         'Cache-Control': `public, max-age=${CACHE_TTL}`,
-        'ETag': `"${cache.etag}"`,
-        'Last-Modified': cache.lastModified,
-        'X-Cache': 'HIT',
-        'X-Cache-Age': `${age}ms`
+        'ETag': `"${fresh.etag}"`,
+        'Last-Modified': fresh.lastModified,
+        'X-Cache': 'MISS'
       },
-      body: cache.data
+      body: JSON.stringify(fresh.products)
     };
 
   } catch (error) {
