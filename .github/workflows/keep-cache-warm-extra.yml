@@ -1,0 +1,30 @@
+name: Keep Cache Warm Extra
+
+on:
+  schedule:
+    # Run at 2.5 minute intervals (between the main 5-minute runs)
+    - cron: "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  keep-cache-warm-extra:
+    runs-on: ubuntu-latest
+    name: Keep get-products cache warm (extra)
+
+    steps:
+      - name: Curl get-products function
+        run: |
+          echo "Extra cache warming for: https://selendis.netlify.app/.netlify/functions/get-products"
+
+          # Make a request to the Netlify function to keep the cache warm
+          # Using the exact headers from the browser request
+          curl -s -o /dev/null -w "Status: %{http_code}, Time: %{time_total}s\n" \
+            "https://selendis.netlify.app/.netlify/functions/get-products" \
+            -H 'sec-ch-ua-platform: "Windows"' \
+            -H 'Referer: https://selendis.ro/' \
+            -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0' \
+            -H 'sec-ch-ua: "Not;A=Brand";v="99", "Microsoft Edge";v="139", "Chromium";v="139"' \
+            -H 'sec-ch-ua-mobile: ?0' \
+            --max-time 30
+
+          echo "Extra cache warming completed at $(date)"
