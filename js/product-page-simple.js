@@ -263,6 +263,59 @@ class SimpleProductPage {
         
         // Update cart count on page load
         this.updateCartCount();
+        
+        // Hamburger menu functionality
+        this.setupHamburgerMenu();
+    }
+
+    setupHamburgerMenu() {
+        const hamburgerMenu = document.getElementById('hamburgerMenu');
+        const navContainer = document.getElementById('navContainer');
+        
+        if (hamburgerMenu && navContainer) {
+            hamburgerMenu.addEventListener('click', (event) => {
+                event.stopPropagation(); // Stop event bubbling
+                
+                hamburgerMenu.classList.toggle('active');
+                navContainer.classList.toggle('active');
+                
+                // Explicitly set display style
+                if (navContainer.classList.contains('active')) {
+                    navContainer.style.display = 'flex';
+                } else {
+                    navContainer.style.display = 'none';
+                }
+                
+                // Apply X animation directly to spans
+                const spans = hamburgerMenu.querySelectorAll('span');
+                if (hamburgerMenu.classList.contains('active')) {
+                    spans[0].style.transform = 'translateY(7px) rotate(45deg)';
+                    spans[1].style.opacity = '0';
+                    spans[2].style.transform = 'translateY(-7px) rotate(-45deg)';
+                } else {
+                    spans[0].style.transform = 'none';
+                    spans[1].style.opacity = '1';
+                    spans[2].style.transform = 'none';
+                }
+            });
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', (event) => {
+                // If menu is active and we're clicking either outside or on a menu item
+                if (navContainer.classList.contains('active') && 
+                    (!hamburgerMenu.contains(event.target) || event.target.closest('.nav-link'))) {
+                    hamburgerMenu.classList.remove('active');
+                    navContainer.classList.remove('active');
+                    navContainer.style.display = 'none';
+                    
+                    // Reset hamburger icon
+                    const spans = hamburgerMenu.querySelectorAll('span');
+                    spans[0].style.transform = 'none';
+                    spans[1].style.opacity = '1';
+                    spans[2].style.transform = 'none';
+                }
+            });
+        }
     }
 
     updateCartCount() {

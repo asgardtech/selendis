@@ -100,6 +100,25 @@
 
 
   <script src="js/product-page-simple.js"></script>
+
+  <!-- Hamburger menu visibility fix -->
+  <script>
+    // Ensure hamburger menu is visible on mobile
+    function checkHamburgerMenu() {
+      const hamburger = document.getElementById('hamburgerMenu');
+      const isMobile = window.innerWidth <= 768;
+
+      if (isMobile) {
+        hamburger.style.display = 'flex';
+      } else {
+        hamburger.style.display = 'none';
+      }
+    }
+
+    // Run on page load and window resize
+    window.addEventListener('load', checkHamburgerMenu);
+    window.addEventListener('resize', checkHamburgerMenu);
+  </script>
 </body>
 
 </html>
