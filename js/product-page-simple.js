@@ -91,7 +91,7 @@ class SimpleProductPage {
                         </div>
                         
                         <div class="product-description">
-                            <p>${this.currentProduct.description}</p>
+                            <p>${this.currentProduct.description.replace(/\n/g, '<br>')}</p>
                         </div>
                         
                         <div class="product-actions">

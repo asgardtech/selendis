@@ -2,8 +2,8 @@ name: Keep Cache Warm
 
 on:
   schedule:
-    # Run every 2 minutes to keep Netlify happy
-    - cron: "*/2 * * * *"
+    # Run every 5 minutes to keep Netlify happy
+    - cron: "0,5,10,15,20,25,30,35,40,45,50,55 * * * *"
   workflow_dispatch: # Allow manual triggering
 
 jobs:
