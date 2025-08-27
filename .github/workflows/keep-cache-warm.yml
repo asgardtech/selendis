@@ -1,0 +1,30 @@
+name: Keep Cache Warm
+
+on:
+  schedule:
+    # Run every 30 minutes
+    - cron: "*/30 * * * *"
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  keep-cache-warm:
+    runs-on: ubuntu-latest
+    name: Keep get-products cache warm
+
+    steps:
+      - name: Curl get-products function
+        run: |
+          echo "Keeping cache warm for: https://selendis.netlify.app/.netlify/functions/get-products"
+
+          # Make a request to the Netlify function to keep the cache warm
+          # Using the exact headers from the browser request
+          curl -s -o /dev/null -w "Status: %{http_code}, Time: %{time_total}s\n" \
+            "https://selendis.netlify.app/.netlify/functions/get-products" \
+            -H 'sec-ch-ua-platform: "Windows"' \
+            -H 'Referer: https://selendis.ro/' \
+            -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0' \
+            -H 'sec-ch-ua: "Not;A=Brand";v="99", "Microsoft Edge";v="139", "Chromium";v="139"' \
+            -H 'sec-ch-ua-mobile: ?0' \
+            --max-time 30
+
+          echo "Cache warming completed at $(date)"
