@@ -310,7 +310,28 @@ export class Store {
 
     async loadProducts() {
         try {
-            return await DriveParser.getAllProducts('https://drive.google.com/drive/folders/1Tbo0fOEn_IUfJZULGJ3hPfWKipytoniJ');
+            // Check localStorage first
+            const cachedProducts = localStorage.getItem('selendis_products');
+            const cacheTimestamp = localStorage.getItem('selendis_products_timestamp');
+            
+            // If we have cached products and they're less than 1 hour old, use them
+            if (cachedProducts && cacheTimestamp) {
+                const age = Date.now() - parseInt(cacheTimestamp);
+                if (age < 60 * 60 * 1000) { // 1 hour
+                    console.log('Using cached products from localStorage');
+                    return JSON.parse(cachedProducts);
+                }
+            }
+            
+            // Fetch fresh products from API
+            console.log('Fetching fresh products from API');
+            const products = await DriveParser.getAllProducts('https://drive.google.com/drive/folders/1Tbo0fOEn_IUfJZULGJ3hPfWKipytoniJ');
+            
+            // Cache in localStorage
+            localStorage.setItem('selendis_products', JSON.stringify(products));
+            localStorage.setItem('selendis_products_timestamp', Date.now().toString());
+            
+            return products;
         } catch (error) {
             console.error('Error loading products:', error);
             throw error;
@@ -394,7 +415,7 @@ export class Store {
                             <div class="cart-items">
                                 ${this.cart.items.map(item => `
                                     <div class="cart-item">
-                                        <img src="${this.productDisplay.getImageUrl(item.image, 'small')}" 
+                                        <img src="https://drive.google.com/thumbnail?id=${item.image}&sz=w200" 
                                              alt="${item.title}">
                                         <div class="cart-item-details">
                                             <h3>${item.title}</h3>

@@ -52,13 +52,18 @@ export class ProductDisplay {
             <p class="price">${product.price} Lei</p>
         `;
         
-        div.addEventListener('click', () => this.showProductDetails(product));
+        div.addEventListener('click', () => this.redirectToProductPage(product));
         return div;
     }
 
     closeModal() {
         this.modal.style.display = 'none';
         document.body.style.overflow = 'auto';
+    }
+
+    redirectToProductPage(product) {
+        // Redirect to product page with product ID
+        window.location.href = `product.html?id=${product.id}`;
     }
 
     showProductDetails(product) {
