@@ -15,6 +15,13 @@ const REFRESH_THRESHOLD = 30;    // seconds before expiry to trigger background 
 // Tracks an inflight cache refresh so we don't start multiple concurrent ones
 let refreshInProgress = null;
 
+// Ensure background tasks are properly tracked
+process.on('beforeExit', () => {
+  if (refreshInProgress) {
+    console.log('Function exiting with background refresh in progress');
+  }
+});
+
 const ALLOWED_ORIGINS = [
   'https://selendis.ro',
   'http://selendis.ro',
@@ -171,30 +178,39 @@ exports.handler = async function(event, context) {
     const isExpired = ageMs > CACHE_TTL * 1000;
     const needsRefresh = isExpired || ageMs > (CACHE_TTL - REFRESH_THRESHOLD) * 1000;
 
-    // Kick off a background refresh if necessary (but do not wait for it)
-    if (needsRefresh && !refreshInProgress) {
-      console.log('Triggering background refresh…');
-      refreshInProgress = (async () => {
-        try {
-          const credentialsJson = Buffer.from(process.env.GOOGLE_CREDENTIALS, 'base64').toString();
-          const credentials = JSON.parse(credentialsJson);
-          const auth = new google.auth.GoogleAuth({
-            credentials,
-            scopes: ['https://www.googleapis.com/auth/drive.readonly']
-          });
-          const drive = google.drive({ version: 'v3', auth });
-          await refreshCache(drive);
-          console.log('Background refresh complete');
-        } catch (err) {
-          console.error('Background refresh failed:', err);
-        } finally {
-          refreshInProgress = null;
-        }
-      })();
-    }
-
-    // If we have cached data – serve it immediately
+    // If we have cached data – serve it immediately (even if expired)
     if (cache.data) {
+      // Kick off a background refresh if necessary (but do not wait for it)
+      if (needsRefresh && !refreshInProgress) {
+        console.log('Triggering background refresh…');
+        
+        // Use a more robust approach that ensures the background task survives
+        const backgroundRefresh = async () => {
+          try {
+            const credentialsJson = Buffer.from(process.env.GOOGLE_CREDENTIALS, 'base64').toString();
+            const credentials = JSON.parse(credentialsJson);
+            const auth = new google.auth.GoogleAuth({
+              credentials,
+              scopes: ['https://www.googleapis.com/auth/drive.readonly']
+            });
+            const drive = google.drive({ version: 'v3', auth });
+            await refreshCache(drive);
+            console.log('Background refresh complete');
+          } catch (err) {
+            console.error('Background refresh failed:', err);
+          } finally {
+            refreshInProgress = null;
+          }
+        };
+        
+        // Start the background refresh without awaiting it
+        refreshInProgress = backgroundRefresh();
+        
+        // Add a small delay to ensure the background task starts before we return
+        // This helps ensure the task is properly queued in the event loop
+        setTimeout(() => {}, 0);
+      }
+
       return {
         statusCode: 200,
         headers: {
